@@ -1,5 +1,6 @@
+*gganimate*
 
-# https://anderfernandez.com/blog/como-crear-animaciones-en-r-con-gganimate/
+[links](https://anderfernandez.com/blog/como-crear-animaciones-en-r-con-gganimate/)
 
 ```{r}
 #rm(list=ls())
