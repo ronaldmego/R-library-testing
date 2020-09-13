@@ -29,7 +29,6 @@ datos = gapminder
 head(datos)
 ```
 
-
 Creando animaciones en R
 Para crear la animación empezaremos creando un gráfico de ggplot normal. Si tienes muchos datos que superpuestos quedan feos, puedes filtrar los gráficos para verlos sobre un estado (en nuestro caso el año). Al fin y al cabo, el objetivo de crear el gráfico es que mostremos los datos de una forma que nos gustan y resulten atractivos para después crear la animación sobre eso.
 
