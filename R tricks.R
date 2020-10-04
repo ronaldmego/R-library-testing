@@ -213,15 +213,15 @@ for (i in seq(2020, 2010, by=-2)){print(i)} #para ir para atras de 2 en 2
 #creando un loop que si en caso encuentra un error lo salta
 
 idnota<-c(
-'VQZ7QIHREBFNPPYH7EPKQGRKIU',
-'P4KQLJIMT5EUPF5S5PXRMWQF3U',
-'CCPMOA3VUVGO5GGO34UA3FWUPE')
+'XXXXX',
+'YYYYY',
+'ZZZZZ')
 idnota<-data.frame(idnota)
 
 arc_df <- data.frame()
 for(i in 1:nrow(idnota)){
   skip_to_next <- FALSE #para next
-  url_arc <-paste('https://api.elcomercio.arcpublishing.com/draft/v1/story/',idnota[i,],'/revision',sep='')
+  url_arc <-paste('https://api.CCCCCC.arcWWWWWWWWW.com/draft/v1/story/',idnota[i,],'/revision',sep='')
   arc0 <- GET(url_arc,headers_arc)
   arc1 <- fromJSON(content(arc0, type = "text"))
   arc2<-arc1[["revisions"]]
