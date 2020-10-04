@@ -247,3 +247,15 @@ for(i in 1:nrow(idnota)){
 
 #para dibujar un barplot de una tabla de frecuencias de una variable 'var'
 barplot(df$freq, names.arg = df$var)
+
+#loop en rango de fechas
+start <- as.Date("01-08-14",format="%d-%m-%y")
+end   <- as.Date("08-09-14",format="%d-%m-%y")
+
+theDate <- start
+
+while (theDate <= end)
+{
+  print(paste0("http://website.com/api/",format(theDate,"%d%b%y")))
+  theDate <- theDate + 1                    
+}
