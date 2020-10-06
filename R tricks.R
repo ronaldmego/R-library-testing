@@ -182,6 +182,7 @@ PlantaPQ_Mon_3$year<-year(PlantaPQ_Mon_3$fch_registro)
 
 #uso del if
 if (test_expression)
+	{
 statement1
 } else {
 statement2
