@@ -1,0 +1,50 @@
+
+# https://michalbrys.gitbooks.io/r-google-analytics/content/chapter3/library_rga.html
+
+```{r}
+library(googleAuthR)
+library(googleAnalyticsR)
+library(tidyverse)
+```
+
+```{r}
+ga_auth() #correr en consola
+```
+
+```{r}
+options(googleAuthR.scopes.selected = c("https://www.googleapis.com/auth/analytics",
+"https://www.googleapis.com/auth/drive"))
+```
+
+
+## get a list of your accounts
+```{r}
+account_list <- ga_account_list()
+```
+
+
+#query
+```{r}
+gadata <- google_analytics(viewId = 21928896, date_range =c("2020-09-01","2020-09-05"),
+                                metrics = "sessions", 
+                                dimensions = "date", 
+                                max = 5000)
+```
+
+
+#listar reportes sin muestrear
+```{r}
+ga_unsampled_list(accountId='3055636', webPropertyId='UA-3055636-11', profileId='21928896') #profileid=viewid
+```
+
+#metadata del reporte sin muestrear
+```{r}
+ga_unsampled(accountId='3055636', webPropertyId='UA-3055636-11', profileId='21928896', unsampledReportId='-jVmHcZqQB2kInVInjlRAw')
+```
+
+#descarga del reporte sin muestrear
+```{r}
+df_premium_por_dia_gs<-ga_unsampled_download(reportTitle='Monetizables EC',accountId='3055636', webPropertyId='UA-3055636-11', profileId='21928896', downloadFile = FALSE)
+```
+
+

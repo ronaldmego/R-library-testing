@@ -1,0 +1,83 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+# Todos los partidos de la NBA desde sus orígenes --------------------------------------------------------
+```{r}
+rm(list = ls())
+library(httr) #brinda las funciones get(), fromJSON(), add_headers()
+library(jsonlite)
+```
+
+# Url: https://rapidapi.com/theapiguy/api/free-nba?endpoint=apiendpoint_5d8ecb72-3e4a-41ff-bc58-45757799acb0
+
+# Paginación:
+# Algunas APis ofrecen un número máximo de filas por petición. Por tanto, si quieres sacar todos los registros
+# tienes que hacer varias llamadas
+
+# Vamos a la url y copiamos los valores de la derecha
+
+
+```{r}
+url = "https://free-nba.p.rapidapi.com/games"
+```
+
+
+```{r}
+querystring = list(page ="0", per_page ="500")
+```
+
+
+```{r}
+headers = add_headers(
+  'x-rapidapi-host'= "free-nba.p.rapidapi.com",
+  'x-rapidapi-key'= "4f11dee2b4mshfb8a56046c398d6p12ce91jsnc55970ff48d6"
+)
+```
+
+
+```{r}
+NBA <- GET(url, query = querystring,  headers)
+
+NBA
+```
+
+```{r}
+NBA <- fromJSON(content(NBA, type = "text"))
+
+total_paginas <- NBA[["meta"]][["total_pages"]]
+```
+```{r}
+NBA1 <- NBA[[1]]
+```
+
+Dado que el autor evidencia que el api solo le trae 100 registros en el request, se probara el metodo de hacer un bucle para hacer varios request y traer las 486 paginas, notar que cada pagina trae 100 registros:
+
+```{r}
+NBA2 <- data.frame() # se crea un dataframe vacio
+for(i in 1:total_paginas){
+  querystring <- list(page=i, per_page="100")
+  x <- GET(url, query = querystring,  headers)
+  x <- fromJSON(content(x, type = "text"))
+  x <- x[["data"]]
+  x <- t(apply(x, 1, unlist)) # Esto hace un unlist de todas las  listas dentro del dataframe
+  NBA2 <- rbind(NBA2,x)
+  print(i)
+  Sys.sleep(1)
+}
+```
+
+
+```{r}
+setwd("D:/Mego/Big_Data/Demo")
+write.csv2(NBA2,"historico_nba.csv", row.names = FALSE)
+#NBA2 <- read.csv2("historico_nba.csv", stringsAsFactors =  FALSE)
+```
+
+
+# ¿Qué podríamos hacer con acceso a todos los NBA de todos los partidos de la NBA?
+# ¿Y si tuviésemos acceso a todos los NBA de cada partido jugada a jugada?
+# Ejemplo: https://community.rstudio.com/t/nba-18-19-analytics-app-kobe-bryant-tribute-2020-shiny-contest-submission/55740
+# API (gratuita para uso no comercial): https://www.mysportsfeeds.com/
