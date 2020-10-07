@@ -33,7 +33,7 @@ querystring = list(page ="0", per_page ="500")
 ```{r}
 headers = add_headers(
   'x-rapidapi-host'= "free-nba.p.rapidapi.com",
-  'x-rapidapi-key'= "4f11dee2b4mshfb8a56046c398d6p12ce91jsnc55970ff48d6"
+  'x-rapidapi-key'= "xxxxxxxxxxxxxxx"
 )
 ```
 

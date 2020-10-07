@@ -10,7 +10,7 @@ output: html_notebook
 library(gmailr)
 ```
 #Client ID: 1083667676606-h13hhrb8bir2136pgk85c8ebrddts5f6.apps.googleusercontent.com
-#Client Secret: 02gyDjl98sgI5AoK84AUmzgP
+#Client Secret: XXXXXXXXXXXXXXXXXX
 
 ```{r}
 gm_auth_configure(path = "C:/Users/ronal/Documents/credentials_gmail.json")
@@ -31,8 +31,8 @@ Create a new email with gm_mime() and the helper functions. When testing it is r
 ```{r}
 test_email <-
   gm_mime() %>%
-  gm_to("ronald.mego@comercio.com.pe") %>%
-  gm_from("businessintelligencegec@gmail.com") %>%
+  gm_to("roxxxxx@comercio.com.pe") %>%
+  gm_from("businessxx@gmail.com") %>%
   gm_subject("hola desde laptop local") %>%
   gm_text_body("Can you hear me now?")
 ```
