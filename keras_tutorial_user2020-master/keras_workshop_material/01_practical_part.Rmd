@@ -1,0 +1,430 @@
+---
+title: "01 - image classification with Keras & TF - building a simple model"
+author: "Dr. Shirin Elsinghorst"
+date: "October 2020"
+output:
+  prettydoc::html_pretty:
+    self_contained: yes
+    highlight: github
+    theme: cayman
+    css: style.css
+  pdf_document:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Keras & TensorFlow
+
+## What is Keras and why use it?
+
+[Keras](https://keras.rstudio.com/) is a **high-level** API written in Python for building and prototyping neural networks and is very convenient for fast and easy prototyping of neural networks. It is highly modular and very flexible, so that you can build basically any type of neural network you want. It supports convolutional neural networks and recurrent neural networks, as well as combinations of both. Due to its layer structure, it is highly extensible and can run on CPU or GPU.
+
+The `keras` R package provides an interface to the Python library of Keras (using the `reticulate` package), just as the `tensorflow` package provides an interface to TensorFlow. Basically, R creates a conda instance and runs Keras in it, while you can still use all the functionalities of R for plotting, etc. Almost all function names are the same, so models can easily be recreated in Python.
+
+Here, we'll be using Keras on top of TensorFlow.
+
+> "TensorFlow™ is an open source software library for numerical computation using data flow graphs. Nodes in the graph represent mathematical operations, while the graph edges represent the multidimensional data arrays (tensors) communicated between them. The flexible architecture allows you to deploy computation to one or more CPUs or GPUs in a desktop, server, or mobile device with a single API. TensorFlow was originally developed by researchers and engineers working on the Google Brain Team within Google's Machine Intelligence research organization for the purposes of conducting machine learning and deep neural networks research, but the system is general enough to be applicable in a wide variety of other domains as well." https://www.tensorflow.org/
+
+```{r libs}
+# load libraries
+library(keras)
+library(tidyverse)
+```
+
+### Tensors
+
+In Machine Learning, tensors are described as **multi-dimensional arrays**; they can be scalars, vectors, matrices, etc.
+BUT mathematically speaking, this isn't technically correct. Tensors are actually multi-linear functions, while multi-dimensional arrays are data structures. Multi-dimensional arrays can represent tensors!
+
+### Graphs
+
+TensorFlow uses **computational graphs** to represent operations:
+Each node takes zero or more tensors as inputs and performs a mathematical operation to produce a tensor as an output. You can easily visualize model graphs you trained with TensorFlow via [TensorBoard](https://www.tensorflow.org/get_started/summaries_and_tensorboard)
+
+---
+
+# Neural Networks & Deep learning
+
+In Machine Learning, neural networks are models that mimic the synapses in human brains. Our brain conveys information via electric signals that travel along the axons of neurons. These cells build a network of inter-connected synapses and dendrites. We learn when new synapses are formed or when they are rearranged. Artificial Neural Networks (ANNs) consist of nodes, that perform calculations and produce an output. Here, information travels via weights and biases to activate connected nodes. ANNs are not a new concept. Back in the early days of their research, we had so called perceptrons. A simple perceptron consists of inputs (multiplied by weights), biases, an activation function and produces an output. When we add multiple layers of perceptrons, we build so called multi-layer perceptrons (MLP). These were the early stages of ANNs. Between the input and output layer, MLPs have one or more hidden layers.
+
+When we say **Deep Learning**, we talk about big neural nets, which are able to solve complex tasks, like image or language understanding. Deep Learning has gained traction and success particularly with ever more powerful GPUs and TPUs (Tensor Processing Units), the increase in computing power and data in general, as well as the development of easy-to-use frameworks, like Keras. We find Deep Learning in our everyday lives, e.g. in voice recognition, computer vision, recommender systems, reinforcement learning and many more.
+
+## Classfication with supervised learning
+
+Supervised learning is a sub-field of machine learning and usually deals with classification or regression tasks. In classification, we are predicting labelled instances that are assigned to a given class. By training a classifier on such known instances, we can extrapolate the learned patterns to predict the classes of unlabeled instances.
+
+A neural net has **weights** associated with every node, and we want to find the most optimal combination of weights in order to get a desired result from the output layer. The desired result in a supervised learning task is for the neural net to calculate predictions that are as close to reality as possible.
+We train a classifier by finding good or even optimal weights (and biases). The weights are optimized by comparing the calculated with the expected output. In a classification problem we would compare the predicted output class with the known class and repeat this process until we have achieved a given stopping criterion (e.g. an acceptable error rate).
+
+---
+
+# Practical Part: Loading images (data)
+
+The dataset we are using here is the [fruit images dataset from Kaggle](https://www.kaggle.com/moltean/fruits/data). I downloaded it to my computer and unpacked it. Because I don't want to build a model for all the different fruits, I define a list of fruits (corresponding to the folder names) that I want to include in the model.
+
+## Validation data
+
+When we train our model, we want to have a way to judge how well it learned and if learning improves over the epochs. Therefore, we want to use validation data, to make these performance measures less biased compared to using the training data only. 
+
+- balance between generalization and specificity
+- to prevent over-fitting!
+- validation sets or cross-validation
+
+![](slides/img/overfitting_explained.jpg)
+
+![](slides/img/validation.jpg)
+
+In Keras, we can either give a specific **validation set** (as we are doing here) or we define a validation split (see below). 
+
+```{r eval=FALSE}
+# path to image folders
+train_image_files_path <- "D:/Mego/Big_Data/Inputs/fruits-360/Training" #"/fruits/Training/"
+valid_image_files_path <- "D:/Mego/Big_Data/Inputs/fruits-360/Test" #"/fruits/Test/"
+```
+
+```{r paths, echo=FALSE}
+# path to image folders
+#train_image_files_path <- "/Users/shiringlander/Documents/Github/Data/fruits-360/Training/"
+#valid_image_files_path <- "/Users/shiringlander/Documents/Github/Data/fruits-360/Test/"
+```
+
+```{r listfiles}
+# list all folders/files in training path
+list.files(train_image_files_path)
+#list.files(valid_image_files_path)
+```
+
+I also define a few other parameters in the beginning to make adapting the model later as easy as possible.
+
+```{r define_params}
+# list of fruits to modle
+fruit_list <- c("Kiwi", "Banana", "Apricot", "Avocado", "Cocos", "Clementine", "Mandarine", "Orange",
+                "Limes", "Lemon", "Peach", "Plum", "Raspberry", "Strawberry", "Pineapple", "Pomegranate")
+
+# number of output classes (i.e. fruits)
+output_n <- length(fruit_list)
+
+# image size to scale down to (original images are 100 x 100 px)
+img_width <- 20
+img_height <- 20
+target_size <- c(img_width, img_height)
+
+# RGB = 3 channels
+channels <- 3
+```
+
+### Loading images
+
+The handy `image_data_generator()` and `flow_images_from_directory()` functions can be used to load images from a directory without having to store all data in memory at the same time. Instead `image_data_generator` will loop over the data and process the images in batches.
+
+```{r batchsize}
+# define batch size
+batch_size <- 32
+```
+
+If you want to use data augmentation, you can directly define how and in what way you want to augment your images with `image_data_generator`. Here I am not augmenting the data, I only scale the pixel values to fall between 0 and 1.
+
+```{r image_data_generator}
+# optional data augmentation
+train_data_gen = image_data_generator(
+  rescale = 1/255 #,
+  #rotation_range = 40,
+  #width_shift_range = 0.2,
+  #height_shift_range = 0.2,
+  #shear_range = 0.2,
+  #zoom_range = 0.2,
+  #horizontal_flip = TRUE,
+  #fill_mode = "nearest"
+)
+
+# Validation data shouldn't be augmented! But it should also be scaled.
+valid_data_gen <- image_data_generator(
+  rescale = 1/255
+  )  
+```
+
+Now we load the images into memory and resize them. 
+
+```{r flow_images_from_directory}
+# training images
+train_image_array_gen <- flow_images_from_directory(train_image_files_path, 
+                                          train_data_gen,
+                                          target_size = target_size,
+                                          class_mode = "categorical",
+                                          classes = fruit_list,
+                                          batch_size = batch_size,
+                                          seed = 42)
+
+# validation images
+valid_image_array_gen <- flow_images_from_directory(valid_image_files_path, 
+                                          valid_data_gen,
+                                          target_size = target_size,
+                                          class_mode = "categorical",
+                                          classes = fruit_list,
+                                          batch_size = batch_size,
+                                          seed = 42)
+```
+
+```{r cat}
+cat("Number of images per class:")
+table(factor(train_image_array_gen$classes))
+
+cat("\nClass label vs index mapping:\n")
+train_image_array_gen$class_indices
+```
+
+Note, that even though Keras' `image_data_generator` recognizes folder names as class labels for classification tasks, these labels will be converted into indices (alphabetical starting from 0) for training and prediction later. Thus, it is useful to create a library object that matches these indices back to human-interpretable labels.
+
+```{r indices}
+# create library for labels vs indices
+fruits_classes_indices <- train_image_array_gen$class_indices
+```
+
+```{r n_samples}
+# number of training samples
+train_samples <- train_image_array_gen$n
+# number of validation samples
+valid_samples <- valid_image_array_gen$n
+```
+
+---
+
+# Learning through optimisation
+
+### Difference between prediction and reality
+
+When our network calculates a predictions, what the output nodes will return before applying an activation function is a numeric value of any size - this is called the score. Just as before, we will now apply an activation function to this score in order to normalize it. In the output of a classification task, we would like to get values between 0 and 1, that's why we most commonly use the **softmax** function; this function converts the scores for every possible outcome/class into a probability distribution with values between 0 and 1 and a sum of 1.
+
+### One-Hot-Encoding
+
+In order to compare this probability distribution of predictions with the true outcome/class, we use a special format to encode our outcome: **One-Hot-Encoding**. For every instance, we will generate a vector with either 0 or 1 for every possible class: the true class of the instance will get a 1, all other classes will get 0s. This one-hot-encoded vector now looks very similar to a probability distribution: it contains values between 0 and 1 and sums up to 1. In fact, our one-hot-encoded vector looks like the probability distribution if our network had predicted the correct class with 100% certainty!
+
+We can now use this similarity between probability distribution and one-hot-encoded vector to calculate the difference between the two; this difference tells us how close to reality our network is: if the difference is small, it is close to reality, if the difference is big, it wasn't very accurate in predicting the outcome. The goal of the learning process is now to find the combination of weights that make the difference between probability distribution and one-hot-encoded vector as small as possible.
+
+One-Hot-Encoding will also be applied to categorical feature variables, because our neural nets need numeric values to learn from - strings and categories in their raw format are not useful per se.
+
+### Loss-Functions
+
+This minimization of the difference between prediction and reality for the entire training set is also called **minimising the loss function**. There are many different loss functions (and in some cases, you will even write your own specific loss function). In classification tasks, the loss function we want to minimize is usually **cross-entropy**.
+
+### Backpropagation
+
+With backpropagation, the calculated error (from the cross entropy in our case) will be propagated back through the network to calculate the proportion of error for every neuron. Based on this proportion of error, we get an error landscape for every neuron. This error landscape can be thought of as a hilly landscape in the Alps, for example. The positions in this landscape are different weights, so that we get weights with high error at the peaks and weights with low error in valleys. In order to minimize the error, we want to find the position in this landscape (i.e. the weight) that is in the deepest valley. 
+
+### Gradient descent
+
+Once we have calculated the gradient for each weight with backpropagation, we use it to inform the optimization algorithm that adjusts the weights for the next cycle of training so as to minimize the loss function. By adjusting the weights, we enable our model to learn the representation of the data. 
+The gradient of the weights is calculated by multiplying the difference of predicted vs known output (the error) with the input activation. We then subtract a so called learning rate from the gradient. This learning rate is a given ratio of the weight gradient and can be used to speed up learning. The bigger the learning rate, the faster the training BUT it will also become less accurate. So, we want to choose a learning rate that balances the trade-off between speed and accuracy. Because the error correlates with the weight gradient, the error distribution will look like a parabola with k+1 dimensions (k = number of weights). Training aims to minimize the error, so the weights are updated in the direction of the steepest gradient descent (i.e. in the direction of lowest error). 
+
+Let's imagine we were a hiker, who is left at a random place in this landscape - while being blindfolded - and we are tasked with finding our way to this valley. We would start by feeling around and looking for the direction with the steepest downward slope. This is also what our neural net does, just that this "feeling around" is called "calculating the **gradient**". And just as we would then make a step in that direction with the steepest downwards slope, our neural net makes a step in the direction with the steepest gradient. This is called **gradient descent**. This procedure will be repeated until we find a place, where we can't go any further down. In our neural net, this number of repeated rounds is called the number of **epochs**.
+
+```{r}
+# define number of epochs
+epochs <- 10
+```
+
+Scaling gradient descent is another problem because it is iterative and therefore very computationally expensive. This makes it impractical for use with big data and/or big models, as we would use in deep learning. We can speed things up by calculating the average loss of a small random fraction of the samples and treat it as if it were the actual loss of the entire training data and then perform gradient descent on it as before. Used once, this is not a very good method but by repeating it many times with very small steps, the error will balance out and will find an effective solution to our optimization problem. This method is called stochastic gradient descent (SGD). For SGD to work, it is important that we normalize our data (scale to zero mean and equal variance, if possible) and that we use initial random weights and biases that also have small variance. 
+
+### Adaptive learning rate and momentum
+
+One common problem with this simple approach is, that we might end up in a place, where there is no direction to go down any more but the steepest valley in the entire landscape is somewhere else. In our neural net, this would be called getting stuck in local minima or on saddle points. In order to be able to overcome these points and find the **global minimum**, several advanced techniques have been developed in recent years.
+
+One of them is the **adaptive learning rate**. Learning rate can be though of as the step size of our hiker. With an adaptive learning rate, we can e.g. start out with a big learning rate reduce it the closer we get to the end of our model training run. Alternatively, we could use **momentum**. If you imagine a ball being pushed from some point in the landscape, it will gain momentum that propels it into a general direction and won't make big jumps into opposing directions. This principle is applied with momentum in neural nets. Momentum uses the running average of the gradient from all previous steps to inform the direction of steepest descent (without momentum, the direction of steepest descent would be determined independently for each step without making use of the information from previous steps). 
+
+<br>
+
+# Convolutional Neural Nets
+
+Convolutional Neural Nets are usually abbreviated either **CNNs** or **ConvNets**. They are a specific type of neural network that has very particular differences compared to MLPs. Basically, you can think of CNNs as working similarly to the **receptive fields of photoreceptors** in the human eye. Receptive fields in our eyes are small connected areas on the retina where groups of many photo-receptors stimulate much fewer ganglion cells. Thus, each ganglion cell can be stimulated by a large number of receptors, so that a complex input is condensed into a **compressed output** before it is further processed in the brain.
+
+## How does a computer see images
+
+Before we dive deeper into CNNs, I briefly want to recap how images can take on a numerical format. We need a numerical representation of our image because just like any other machine learning model or neural net, CNNs need data in form of numbers in order to learn! With images, these numbers are **pixel values**; when we have a grey-scale image, these values represent a range of "greyness" from 0 (black) to 255 (white).
+
+Here is an example image from the fruits datasets, which is used in the [practical example for this lesson](https://shirinsplayground.netlify.com/2018/06/keras_fruits/). In general, data can be represented in different formats, e.g. as vectors, tables or matrices. I am using the `imager` package to read the image and have a look at the pixel values, which are represented as a **matrix with the dimensions image width x image height**.
+
+```{r warning=FALSE, message=FALSE}
+library(imager)
+im <- load.image("D:/Mego/Big_Data/Inputs/fruits-360/Training/Strawberry/100_100.jpg")
+```
+
+```{r}
+plot(im)
+```
+
+But when we look at the `dim()` function with our image, we see that there are actually four dimensions and only the first two represent image width and image height. The third dimension is for the depth, which means in case of videos the time or order of the frames; with regular images, we don't need this dimension. The third dimension shows the number of **color channels**; in this case, we have a color image, so there are three channels for red, green and blue. The values remain in the same between 0 and 255 but now they don't represent grey-scales but color intensity of the respective channel. This 3-dimensional format (a stack of three matrices) is also called a 3-dimensional **array**.
+
+```{r}
+dim(im)
+```
+
+Let's see what happens if we convert our image to **greyscale**:
+
+```{r}
+im_grey <- grayscale(im)
+plot(im_grey)
+```
+
+Our grey image has only **one channel**.
+
+```{r}
+dim(im_grey)
+```
+
+When we look at the actual matrix of pixel values (below, shown with a subset), we see that our values are not shown as raw values, but as **scaled** values between 0 and 1.
+
+```{r}
+head(as.array(im_grey)[25:75, 25:75, 1, 1])
+```
+
+The same applies to the color image, which if multiplied with 255 shows raw pixel values:
+
+```{r}
+head(as.array(im)[25:75, 25:75, 1, 1]  * 255)
+```
+
+## Learning different levels of abstraction
+
+These pixel arrays of our images are now the input to our CNN, which can now learn to recognize e.g. which fruit is on each image (a **classification task**). This is accomplished by learning different [**levels of abstraction**](https://distill.pub/2017/feature-visualization/) of the images. In the first few hidden layers, the CNN usually detects **general patterns**, like edges; the deeper we go into the CNN, these learned abstractions become more specific, like **textures**, **patterns** and (parts of) **objects**.
+
+## MLPs versus CNNs
+
+We could also train MLPs on our images but usually, they are not very good at this sort of task. So, what's the **magic behind CNNs**, that makes them so much more powerful at detecting images and object?
+
+The most important difference is that **MLPs consider each pixel position as an independent features**; it does not know neighboring pixels! That's why MLPs will not be able to detect images where the objects have a different orientation, position, etc. Moreover, because we often deal with large images, the sheer number of trainable parameters in an MLP will quickly escalate, so that training such a network isn't exactly efficient. **CNNs consider groups of neighboring pixels**. In the neural net these groups of neighboring pixels are only connected vertically with each other in the first CNN layers (until we collapse the information); this is called **local connectivity**. Because the CNN looks at pixels in context, it is able to learn patterns and objects and recognizes them even if they are in different positions on the image. These groups of neighboring pixels are scanned with a **sliding window**, which runs across the entire image from the top left corner to the bottom right corner. The size of the sliding window can vary, often we find e.g. 3x3 or 5x5 pixel windows.
+
+In MLPs, **weights** are learned, e.g. with gradient descent and backpropagation. CNNs (convolutional layers to be specific) learn so called **filters** or **kernels** (sometimes also called filter kernels). The number of trainable parameters can be much lower in CNNs than in a MLP!
+
+By the way, CNNs can not only be used to classify images, they can also be used for other tasks, like text classification!
+
+---
+
+# Define model
+
+Next, we define the `keras` model. 
+
+## Hidden layers
+
+In more complex neural nets, neurons are arranged in layers. The first layer is the input layer with our data that is flowing into the neural net. Then we have a number of **hidden layers** and finally an output layer with the final prediction of our neural net. There are many different types and architectures for neural nets, like LSTMs, CNNs, GANs, etc. A simple architecture is the **Multi-Layer-Perceptron (MLP)** in which every node is connected to all other nodes in the preceding and the following layers; such layers are also called dense layers. The model I am using here is a simple sequential convolutional neural net with the following hidden layers: 2 convolutional layers, one pooling layer and one dense layer.
+
+## Learning filter kernels
+
+A filter is a matrix with the same dimension as our sliding window, e.g. 3x3. At each position of our sliding window, a mathematical operation is performed, the so called **convolution**. During convolution, each pixel value in our window is multiplied with the value at the respective position in the filter matrix and the sum of all multiplications is calculated. This result is called the **dot product**. Depending on what values the filter contains at which position, the original image will be **transformed** in a certain way, e.g. sharpen, blur or make edges stand out. You can find great visualizations on [setosa.io](http://setosa.io/ev/image-kernels/).
+
+To be precise, **filters are collections of kernels** so that, if we work with color images, we have 3 channels. The 3 dimensions from the channels will all get one kernel, which together create the filter. Each filter will only calculate one output value, the dot product mentioned earlier. The learning part of CNNs comes into play with these filters. Similar to learning weights in a MLP, CNNs will **learn the most optimal filters** for recognizing specific objects and patterns. But a CNN doesn't only learn one filter, it learns multiple filters. In fact, it even learns multiple filters in each layer! Every filter learns a specific pattern, or **feature**. That's why these collections of parallel filters are the so called **stacks of feature maps** or **activation maps**. We can visualize these activation maps to help us understand what the CNN learn along the way, but this is a topic for another lesson.
+
+## Padding and step size
+
+Two important hyperparameters of CNNs are **padding** and **step size**. Padding means the (optional) adding of "fake" pixel values to the borders of the images. This is done to scan all pixels the same number of times with the sliding window (otherwise the border pixels would get covered less frequently than pixels in the center of the image) and to keep the the size of the image the same between layers (otherwise the output image would be smaller than the input image). There are different options for padding, with "same" the border pixels will be duplicated or you could pad with zeros. Now our sliding window can start "sliding". The step size determines how far the window will proceed between convolutions. Often we find a step size of 1, where the sliding window will advance only 1 pixel to the right and to the bottom while scanning the image. If we increase the step size, we would need to do fewer calculations and our model would train faster. Also, we would reduce the output image size; in modern implementations, this is explicitly done for that purpose, instead of using pooling layers.
+
+## Pooling
+
+As you can probably guess from the previous sentence, **pooling layers** are used to reduce the size of images in a CNN and to compress the information down to a smaller scale. Pooling is applied to every feature map and helps to extract broader and more general patterns that are more robust to small changes in the input. Common CNN architectures combine one or two convolutional layers with one pooling layer in one block. Several of such blocks are then put in a row to form the core of a basic CNN. Several advancements to this basic architecture exist nowadays, like Inception/Xception, ResNets, etc. but I will focus on the basics here (an advanced chapter will be added to the course in the future).
+
+Pooling layers also work with **sliding windows**; they can but don't have to have the same dimension as the sliding window from the convolutional layer. Also, sliding windows for pooling normally don't overlap and every pixel is only considered once. There are several options for how to pool:
+
+- **max pooling** will keep only the biggest value of each window
+- **average pooling** will build the average from each window
+- **sum pooling** will build the sum of each window
+
+## Dense layers calculate the output of the CNN
+
+After our desired number of convolution + pooling blocks, there will usually be a few **dense (or fully connected)** layers before the final dense layer that calculates the **output**. These dense layers are nothing else than a simple MLP that learns the classification or regression task, while you can think of the preceding convolutions as the means to **extract the relevant features for this simple MLP**.
+
+Just like in a MLP, we use **activation functions**, like rectified linear units in our CNN; here, they are used with convolutional layers and dense layers. Because pooling only condenses information, we don't need to normalize the output there.
+
+## Activation functions
+
+Before, when describing the simple **perceptron**, I said that a result is calculated in a neuron, e.g. by summing up all the incoming data multiplied by weights. However, this has one big disadvantage: such an approach would only enable our neural net to learn **linear** relationships between data. In order to be able to learn (you can also say approximate) any mathematical problem - no matter how complex - we use **activation functions**. Activation functions normalize the output of a neuron, e.g. to values between -1 and 1, (Tanh), 0 and 1 (Sigmoid) or by setting negative values to 0 (Rectified Linear Units, ReLU). **Dropout** is used to improve the generalizability of neural nets by randomly setting a given proportion of nodes to 0.
+
+If we go back to the brain analogy, the activation function determines the threshold at which a neuron fires. Each neuron receives signals from multiple other neurons and only if the sum of all signals is higher than this threshold will it send an electric signal of its own and send the signal along to the next neuron. In neural networks, we also need this switch that determines whether a node is activated (i.e. fires) or not. Without an activation function, we would have a linear function, which has limited power and does not perform well most of the time. Linear models are a good starting point for exploring neural networks. They are relatively fast to train, stable and easier to interpret. But they are also very limited when it comes to representing more complex patterns in data. Therefore, we need to introduce non-linearity in order to solve complex deep neural networks. We can do this by inserting non-linear activation functions into a linear network.
+
+Simple activation functions produce a binary output (1 = fire or 0 = don't fire). But we can use more complex functions in order to solve complex problems. In ANNs, we take the sum of the inputs multiplied with their weights and apply the activation function in order to produce the output of this layer. The output can either be fed into the next layer or, if it is the last layer, it will be the final output.
+
+The most popular types of activation functions are
+
+- Sigmoid or Logistic
+- Tanh or hyperbolic tangent
+- ReLu (Rectified Linear Units)
+
+The Sigmoid function is an S-shaped curve that ranges from 0 to 1. It is easy to understand and apply but it has major draw-backs: the vanishing gradient problem and its output isn’t zero centered.
+This makes the gradient go too far in different directions, which makes optimization harder. Sigmoid also quickly saturates and kills the gradients; and they have slow convergence.
+Optimization with Tanh is easier because its output is zero centered and ranges from -1 to 1. But it also suffers from the vanishing gradient problem.
+ReLu is a non-linear function and has a much better convergence rate than Tanh, nor does it suffer from the vanishing gradient problem. Almost all deep learning models use ReLu nowadays. But its limitation is that it should only be used with hidden layers.
+Sometimes, weight updates can result in a negative feedback loop so that nodes are never activated on any data point again, resulting in dead nodes. To fix this problem another modification was introduced, called Leaky ReLu. It introduces a small slope to keep the updates alive.
+
+```{r }
+# initialise model
+model <- keras_model_sequential()
+
+# add layers
+model %>%
+  layer_conv_2d(filter = 32, kernel_size = c(3,3), padding = "same", input_shape = c(img_width, img_height, channels)) %>%
+  layer_activation("relu") %>%
+  
+  # Second hidden layer
+  layer_conv_2d(filter = 16, kernel_size = c(3,3), padding = "same") %>%
+  layer_activation_leaky_relu(0.5) %>%
+  layer_batch_normalization() %>%
+
+  # Use max pooling
+  layer_max_pooling_2d(pool_size = c(2,2)) %>%
+  layer_dropout(0.25) %>%
+  
+  # Flatten max filtered output into feature vector 
+  # and feed into dense layer
+  layer_flatten() %>%
+  layer_dense(100) %>%
+  layer_activation("relu") %>%
+  layer_dropout(0.5) %>%
+
+  # Outputs from dense layer are projected onto output layer
+  layer_dense(output_n) %>% 
+  layer_activation("softmax")
+
+# compile
+model %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = optimizer_rmsprop(lr = 0.0001, decay = 1e-6),
+  metrics = "accuracy"
+)
+```
+
+Fitting the model: because I used `image_data_generator()` and `flow_images_from_directory()` I am now also using the `fit_generator()` to run the training.
+
+```{r fit}
+# fit
+hist <- model %>% fit_generator(
+  # training data
+  train_image_array_gen,
+  
+  # epochs
+  steps_per_epoch = as.integer(train_samples / batch_size), 
+  epochs = epochs, 
+  
+  # validation data
+  validation_data = valid_image_array_gen,
+  validation_steps = as.integer(valid_samples / batch_size)
+)
+```
+
+In RStudio we are seeing the output as an interactive plot in the "Viewer" pane but we can also plot it:
+
+```{r}
+plot(hist)
+```
+
+```{r}
+hist
+```
+
+---
+
+```{r}
+devtools::session_info()
+```
+
+

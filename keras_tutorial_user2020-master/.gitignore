@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+docker.Rmd
+*.Rproj
+/keras_workshop_material/slides/*
+!/keras_workshop_material/slides/workshop_slides.pdf
+.*
+/keras_workshop_material/.*
+!/.gitignore

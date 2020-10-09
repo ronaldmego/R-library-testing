@@ -1,0 +1,333 @@
+---
+title: "02 - image classification with Keras & TF"
+description: | 
+  Validation split; predicting on new images; callbacks
+author: "Dr. Shirin Elsinghorst"
+date: "October 2020"
+output:
+  prettydoc::html_pretty:
+    self_contained: yes
+    highlight: github
+    theme: cayman
+    css: style.css
+  pdf_document:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# load libraries
+library(keras)
+library(tidyverse)
+```
+
+```{r eval=FALSE}
+# path to image folders
+train_image_files_path <- "D:/Mego/Big_Data/Inputs/fruits-360/Training"
+```
+
+```{r echo=FALSE}
+# path to image folders
+#train_image_files_path <- "/Users/shiringlander/Documents/Github/Data/fruits-360/Training/"
+```
+
+I also define a few other parameters in the beginning to make adapting the model later as easy as possible.
+
+```{r}
+# list of fruits to modle
+fruit_list <- c("Kiwi", "Banana", "Apricot", "Avocado", "Cocos", "Clementine", "Mandarine", "Orange",
+                "Limes", "Lemon", "Peach", "Plum", "Raspberry", "Strawberry", "Pineapple", "Pomegranate")
+
+# number of output classes (i.e. fruits)
+output_n <- length(fruit_list)
+
+# image size to scale down to (original images are 100 x 100 px)
+img_width <- 20
+img_height <- 20
+target_size <- c(img_width, img_height)
+
+# RGB = 3 channels
+channels <- 3
+```
+
+### Loading images
+
+The handy `image_data_generator()` and `flow_images_from_directory()` functions can be used to load images from a directory without having to store all data in memory at the same time. Instead `image_data_generator` will loop over the data and process the images in batches.
+
+```{r}
+# define batch size
+batch_size <- 32
+```
+
+# Validation split
+
+```{r}
+# create image_data_generator with validation split
+train_data_gen_split = image_data_generator(
+  rescale = 1/255,
+  validation_split = 0.3
+)
+```
+
+```{r}
+# training images
+train_image_array_gen_split <- flow_images_from_directory(train_image_files_path, 
+                                          train_data_gen_split,
+                                          subset = 'training',
+                                          target_size = target_size,
+                                          class_mode = "categorical",
+                                          classes = fruit_list,
+                                          batch_size = batch_size,
+                                          seed = 42)
+
+# validation images
+valid_image_array_gen_split <- flow_images_from_directory(train_image_files_path, 
+                                          train_data_gen_split,
+                                          subset = 'validation',
+                                          target_size = target_size,
+                                          class_mode = "categorical",
+                                          classes = fruit_list,
+                                          batch_size = batch_size,
+                                          seed = 42)
+```
+
+```{r}
+# number of training samples
+train_samples_split <- train_image_array_gen_split$n
+# number of validation samples
+valid_samples_split <- valid_image_array_gen_split$n
+```
+
+```{r }
+# initialise model
+model_split <- keras_model_sequential()
+
+# add layers
+model_split %>%
+  layer_conv_2d(filter = 32, kernel_size = c(3,3), padding = "same", input_shape = c(img_width, img_height, channels)) %>%
+  layer_activation("relu") %>%
+  
+  # Second hidden layer
+  layer_conv_2d(filter = 16, kernel_size = c(3,3), padding = "same") %>%
+  layer_activation_leaky_relu(0.5) %>%
+  layer_batch_normalization() %>%
+
+  # Use max pooling
+  layer_max_pooling_2d(pool_size = c(2,2)) %>%
+  layer_dropout(0.25) %>%
+  
+  # Flatten max filtered output into feature vector 
+  # and feed into dense layer
+  layer_flatten() %>%
+  layer_dense(100) %>%
+  layer_activation("relu") %>%
+  layer_dropout(0.5) %>%
+
+  # Outputs from dense layer are projected onto output layer
+  layer_dense(output_n) %>% 
+  layer_activation("softmax")
+
+# compile
+model_split %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = optimizer_rmsprop(lr = 0.0001, decay = 1e-6),
+  metrics = "accuracy"
+)
+```
+
+```{r fit}
+# fit
+hist_split <- model_split %>% fit_generator(
+  # training data
+  train_image_array_gen_split,
+  
+  # epochs
+  steps_per_epoch = as.integer(train_samples_split / batch_size), 
+  epochs = epochs, 
+  
+  # validation data
+  validation_data = valid_image_array_gen_split,
+  validation_steps = as.integer(valid_samples_split / batch_size)
+)
+```
+
+```{r}
+# plot
+plot(hist_split)
+```
+
+```{r}
+# training results
+hist_split
+```
+
+```{r eval=FALSE}
+# path to image folders
+test_image_files_path <- "D:/Mego/Big_Data/Inputs/fruits-360/Test"
+```
+
+```{r echo=FALSE}
+# path to image folders
+#test_image_files_path <- "/Users/shiringlander/Documents/Github/Data/fruits-360/Test/"
+```
+
+```{r}
+# use new test images with image_data_generator
+test_datagen <- image_data_generator(rescale = 1/255)
+
+test_generator <- flow_images_from_directory(
+        test_image_files_path,
+        test_datagen,
+        target_size = target_size,
+        class_mode = "categorical",
+        classes = fruit_list,
+        batch_size = 1,
+        shuffle = FALSE,
+        seed = 42)
+```
+
+```{r}
+test_generator$reset()
+model %>%
+  evaluate_generator(test_generator, 
+                     steps = as.integer(test_generator$n))
+```
+
+```{r}
+classes <- test_generator$classes %>%
+  factor() %>%
+  table() %>%
+  as_tibble()
+colnames(classes)[1] <- "value"
+```
+
+```{r}
+# create library of indices & class labels
+indices <- train_image_array_gen$class_indices %>%
+  as.data.frame() %>%
+  gather() %>%
+  mutate(value = as.character(value)) %>%
+  left_join(classes, by = "value")
+```
+
+```{r}
+# predict on test data
+test_generator$reset()
+predictions <- model %>% 
+  predict_generator(
+    generator = test_generator,
+    steps = as.integer(test_generator$n)
+    ) %>%
+  round() %>%
+  as_tibble()#as.tibble()
+
+colnames(predictions) <- indices$key
+
+predictions <- predictions %>%
+  mutate(truth_idx = as.character(test_generator$classes)) %>%
+  left_join(indices, by = c("truth_idx" = "value"))
+```
+
+```{r}
+pred_analysis <- predictions %>%
+  mutate(img_id = seq(1:test_generator$n)) %>%
+  gather(pred_lbl, y, Kiwi:Pomegranate) %>%
+  group_by(img_id) %>%
+  filter(y == max(y)) %>%
+  arrange(img_id) %>%
+  group_by(key, n, pred_lbl) %>%
+  count()
+```
+
+```{r fig.width=6}
+pred_analysis %>%
+  mutate(percentage_pred = nn / n * 100) %>%
+  ggplot(aes(x = key, y = pred_lbl, 
+             fill = percentage_pred,
+             label = round(percentage_pred, 2))) +
+    geom_tile() +
+    scale_fill_continuous() +
+    geom_text(color = "white") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+```{r}
+pred_analysis %>%
+  mutate(prediction = case_when(
+    key == pred_lbl ~ "correct",
+    TRUE ~ "false"
+  )) %>%
+  group_by(key, prediction, n) %>%
+  summarise(sum = sum(nn)) %>%
+  mutate(percentage_pred = sum / n * 100) %>%
+  ggplot(aes(x = key, y = prediction, 
+             fill = percentage_pred,
+             label = round(percentage_pred, 2))) +
+    geom_tile() +
+    scale_fill_continuous() +
+    geom_text(color = "white") +
+    coord_flip()
+```
+
+---
+
+```{r eval=FALSE}
+save_model_hdf5(model, filepath = "D:/Mego/Github/R_tutorials/keras_tutorial_user2020-master/fruits_final_model.h5")
+```
+
+```{r eval=FALSE}
+model <- load_model_hdf5("D:/Mego/Github/R_tutorials/keras_tutorial_user2020-master/fruits_final_model.h5", custom_objects = c(loss_categorical_crossentropy = loss_categorical_crossentropy))
+#my_cnn_model.h5
+```
+
+---
+
+# Callbacks
+
+Keras comes with a number of built in [callbacks](https://keras.rstudio.com/articles/training_callbacks.html).
+
+```{r}
+# fit
+hist_split_cb <- model_split %>% fit_generator(
+  # training data
+  train_image_array_gen_split,
+  
+  # epochs
+  steps_per_epoch = as.integer(train_samples_split / batch_size), 
+  epochs = epochs, 
+  
+  # validation data
+  validation_data = valid_image_array_gen_split,
+  validation_steps = as.integer(valid_samples_split / batch_size),
+  
+  callbacks = list(
+    #callback_model_checkpoint("checkpoints.h5"),
+    callback_early_stopping(monitor = "val_loss", min_delta = 0.001, patience = 3)#,
+    #callback_tensorboard("logs")
+  )
+)
+```
+
+Finally, I want to have a look at the TensorFlow graph with TensorBoard. 
+
+- suite of visualization tools
+- visualize TensorFlow graph, 
+- plot quantitative metrics about the execution of your graph,
+- etc.
+
+```{r eval=FALSE}
+tensorboard("logs")
+```
+
+![](slides/img/tensorboard_example.png)
+
+---
+
+```{r}
+devtools::session_info()
+```
+
+

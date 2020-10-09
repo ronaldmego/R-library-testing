@@ -1,0 +1,94 @@
+---
+title: 'UseR 2020 Workshop: Deep Learning with Keras and TensorFlow'
+author: "Dr. Shirin Elsinghorst"
+date: "Sept. 30th 2020"
+output:
+  pdf_document:
+    keep_tex: yes
+  html_document:
+    df_print: paged
+  prettydoc::html_pretty:
+    self_contained: yes
+    highlight: github
+    theme: cayman
+    css: style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE, echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+![](https://shirinsplayground.netlify.com/img/R_Meetup_flyer.png)
+
+# Setting up R and Keras
+
+## Installation
+
+### R
+
+- Install R or update to latest version (R version 4.0.2)
+
+### RStudio
+
+- Install RStudio or update to latest version (Version 1.3.1073)
+
+### Keras & TensorFlow
+
+- Install TensorFlow (or update package)
+
+- https://tensorflow.rstudio.com/installation/
+
+```{r eval=FALSE}
+install.packages("tensorflow")
+library(tensorflow)
+install_tensorflow() #envname = "r-tf"
+```
+
+- Check that it loads.
+
+```{r}
+library(tensorflow)
+```
+
+The [`keras` R package](https://keras.rstudio.com/) provides an interface to the Keras machine learning library. It is very easy to install and allows you to combine the power and flexibility of Keras with the advantages of R (visualization, consistent working environment with R Studio and consistent layout with R Markdown).
+
+- Load the library
+
+```{r}
+library(keras)
+
+# check if keras is available
+is_keras_available()
+```
+
+- If that doesn't work, install Keras
+
+```{r eval=FALSE}
+install.packages("keras")
+install_keras() #envname = "r-tf"
+```
+
+```{python echo=FALSE, eval=FALSE}
+import tensorflow as tf
+tf.__version__
+```
+
+```{python echo=FALSE, eval=FALSE}
+import keras as ks
+ks.__version__
+```
+
+### Daten
+
+Download the [Fruits 360 dataset: A dataset of images containing fruits and vegetables from Kaggle](https://www.kaggle.com/moltean/fruits).
+
+---
+
+# You are all set!
+
+---
+
+```{r eval=TRUE}
+devtools::session_info()
+```
+
