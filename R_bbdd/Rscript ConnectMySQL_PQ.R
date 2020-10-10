@@ -8,7 +8,7 @@ library(openxlsx)
 db_user <- 'XXXXX'
 db_password <- 'XXXX'
 db_name <- 'prod_quiosco2db'
-db_host <- 'aurora02-cluster.cluster-ro-clz6pendayku.us-east-1.rds.amazonaws.com'
+db_host <- 'xxx.rds.amazonaws.com'
 db_port <- 3306
 
 

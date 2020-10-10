@@ -1,0 +1,1243 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# https://rkabacoff.github.io/datavis/IntroGGPLOT.html
+
+```{r}
+rm(list=ls())
+library(ggplot2)
+library(mosaicData)
+library(dplyr)
+```
+# *2.Introduction to ggplot2*
+
+```{r}
+data(CPS85 , package = "mosaicData")
+```
+
+2.1.2 geoms
+Geoms are the geometric objects (points, lines, bars, etc.) that can be placed on a graph. They are added using functions that start with geom_. In this example, we’ll add points using the geom_point function, creating a scatterplot.
+
+In ggplot2 graphs, functions are chained together using the + sign to build a final plot.
+
+
+```{r}
+# add points
+ggplot(data = CPS85,
+       mapping = aes(x = exper, y = wage)) +
+  geom_point()
+```
+Figure 2.2: Add points
+
+The graph indicates that there is an outlier. One individual has a wage much higher than the rest. We’ll delete this case before continuing.
+
+```{r}
+# delete outlier
+plotdata<-filter(CPS85,wage<40)
+```
+
+```{r}
+# redraw scatterplot
+ggplot(data=plotdata,
+       mapping=aes(x=exper,y=wage))+
+  geom_point()
+```
+Figure 2.3: Remove outlier
+
+A number of parameters (options) can be specified in a geom_ function. Options for the geom_point function include color, size, and alpha. These control the point color, size, and transparency, respectively. Transparency ranges from 0 (completely transparent) to 1 (completely opaque). Adding a degree of transparency can help visualize overlapping points.
+
+```{r}
+# make points blue, larger, and semi-transparent
+ggplot(data = plotdata,
+       mapping = aes(x = exper, y = wage)) +
+  geom_point(color = "cornflowerblue",
+             alpha = .7,
+             size = 3)
+```
+
+Figure 2.4: Modify point color, transparency, and size
+
+Next, let’s add a line of best fit. We can do this with the geom_smooth function. Options control the type of line (linear, quadratic, nonparametric), the thickness of the line, the line’s color, and the presence or absence of a confidence interval. Here we request a linear regression (method = lm) line (where lm stands for linear model).
+
+```{r}
+# add a line of best fit.
+ggplot(data = plotdata,
+       mapping = aes(x = exper, y = wage)) +
+  geom_point(color = "cornflowerblue",
+             alpha = .7,
+             size = 3) +
+  geom_smooth(method = "lm")
+```
+
+Figure 2.5: Add line of best fit
+
+Wages appears to increase with experience.
+
+
+2.1.3 grouping
+In addition to mapping variables to the x and y axes, variables can be mapped to the color, shape, size, transparency, and other visual characteristics of geometric objects. This allows groups of observations to be superimposed in a single graph.
+
+Let’s add sex to the plot and represent it by color.
+
+```{r}
+# indicate sex using color
+ggplot(data = plotdata,
+       mapping = aes(x = exper, 
+                     y = wage,
+                     color = sex)) +
+  geom_point(alpha = .7,
+             size = 3) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              size = 1.5)
+```
+Figure 2.6: Include sex, using color
+
+The color = sex option is placed in the aes function, because we are mapping a variable to an aesthetic. The geom_smooth option (se = FALSE) was added to suppresses the confidence intervals.
+
+It appears that men tend to make more money than women. Additionally, there may be a stronger relationship between experience and wages for men than than for women.
+
+
+2.1.4 scales
+Scales control how variables are mapped to the visual characteristics of the plot. Scale functions (which start with scale_) allow you to modify this mapping. In the next plot, we’ll change the x and y axis scaling, and the colors employed.
+
+```{r}
+# modify the x and y axes and specify the colors to be used
+ggplot(data = plotdata,
+       mapping = aes(x = exper, 
+                     y = wage,
+                     color = sex)) +
+  geom_point(alpha = .7,
+             size = 3) +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              size = 1.5) +
+  scale_x_continuous(breaks = seq(0, 60, 10)) +
+  scale_y_continuous(breaks = seq(0, 30, 5),
+                     label = scales::dollar) +
+  scale_color_manual(values = c("indianred3", 
+                                "cornflowerblue"))
+```
+
+Figure 2.7: Change colors and axis labels
+
+We’re getting there. The numbers on the x and y axes are better, the y axis uses dollar notation, and the colors are more attractive (IMHO).
+
+Here is a question. Is the relationship between experience, wages and sex the same for each job sector? Let’s repeat this graph once for each job sector in order to explore this.
+
+
+2.1.5 facets
+Facets reproduce a graph for each level a given variable (or combination of variables). Facets are created using functions that start with facet_. Here, facets will be defined by the eight levels of the sector variable.
+
+```{r}
+# reproduce plot for each level of job sector
+ggplot(data = plotdata,
+       mapping = aes(x = exper, 
+                     y = wage,
+                     color = sex)) +
+  geom_point(alpha = .7) +
+  geom_smooth(method = "lm", 
+              se = FALSE) +
+  scale_x_continuous(breaks = seq(0, 60, 10)) +
+  scale_y_continuous(breaks = seq(0, 30, 5),
+                     label = scales::dollar) +
+  scale_color_manual(values = c("indianred3", 
+                                "cornflowerblue")) +
+  facet_wrap(~sector)
+```
+Figure 2.8: Add job sector, using faceting
+
+It appears that the differences between mean and women depend on the job sector under consideration.
+
+
+
+2.1.6 labels
+Graphs should be easy to interpret and informative labels are a key element in achieving this goal. The labs function provides customized labels for the axes and legends. Additionally, a custom title, subtitle, and caption can be added.
+
+```{r}
+# add informative labels
+ggplot(data = plotdata,
+       mapping = aes(x = exper,
+                     y = wage,
+                     color = sex)) +
+  geom_point(alpha = .7) +
+  geom_smooth(method = "lm",
+              se = FALSE) +
+  scale_x_continuous(breaks = seq(0, 60, 10)) +
+  scale_y_continuous(breaks = seq(0, 30, 5),
+                     label = scales::dollar) +
+  scale_color_manual(values = c("indianred3", 
+                                "cornflowerblue")) +
+  facet_wrap(~sector) +
+  labs(title = "Relationship between wages and experience",
+       subtitle = "Current Population Survey",
+       caption = "source: http://mosaic-web.org/",
+       x = " Years of Experience",
+       y = "Hourly Wage",
+       color = "Gender")
+```
+
+Figure 2.9: Add informative titles and labels
+
+Now a viewer doesn’t need to guess what the labels expr and wage mean, or where the data come from.
+
+
+2.1.7 themes
+Finally, we can fine tune the appearance of the graph using themes. Theme functions (which start with theme_) control background colors, fonts, grid-lines, legend placement, and other non-data related features of the graph. Let’s use a cleaner theme.
+
+
+```{r}
+# use a minimalist theme
+ggplot(data = plotdata,
+       mapping = aes(x = exper, 
+                     y = wage,
+                     color = sex)) +
+  geom_point(alpha = .6) +
+  geom_smooth(method = "lm", 
+              se = FALSE) +
+  scale_x_continuous(breaks = seq(0, 60, 10)) +
+  scale_y_continuous(breaks = seq(0, 30, 5),
+                     label = scales::dollar) +
+  scale_color_manual(values = c("indianred3", 
+                                "cornflowerblue")) +
+  facet_wrap(~sector) +
+  labs(title = "Relationship between wages and experience",
+       subtitle = "Current Population Survey",
+       caption = "source: http://mosaic-web.org/",
+       x = " Years of Experience",
+       y = "Hourly Wage",
+       color = "Gender") +
+  theme_minimal()
+```
+
+Figure 2.10: Use a simpler theme
+
+Now we have something. It appears that men earn more than women in management, manufacturing, sales, and the “other” category. They are most similar in clerical, professional, and service positions. The data contain no women in the construction sector. For management positions, wages appear to be related to experience for men, but not for women (this may be the most interesting finding). This also appears to be true for sales.
+
+Of course, these findings are tentative. They are based on a limited sample size and do not involve statistical testing to assess whether differences may be due to chance variation.
+
+
+2.2 Placing the data and mapping options
+Plots created with ggplot2 always start with the ggplot function. In the examples above, the data and mapping options were placed in this function. In this case they apply to each geom_ function that follows.
+
+You can also place these options directly within a geom. In that case, they only apply only to that specific geom.
+
+Consider the following graph.
+
+```{r}
+# placing color mapping in the ggplot function
+ggplot(plotdata,
+       aes(x = exper, 
+           y = wage,
+           color = sex)) +
+  geom_point(alpha = .7,
+             size = 3) +
+  geom_smooth(method = "lm",
+              formula = y ~ poly(x,2),
+              se = FALSE, 
+              size = 1.5)
+```
+
+Figure 2.11: Color mapping in ggplot function
+
+Since the mapping of sex to color appears in the ggplot function, it applies to both geom_point and geom_smooth. The color of the point indicates the sex, and a separate colored trend line is produced for men and women. Compare this to
+
+```{r}
+# placing color mapping in the geom_point function
+ggplot(plotdata,
+       aes(x = exper, 
+           y = wage)) +
+  geom_point(aes(color = sex),
+             alpha = .7,
+             size = 3) +
+  geom_smooth(method = "lm",
+              formula = y ~ poly(x,2),
+              se = FALSE, 
+              size = 1.5)
+```
+Figure 2.12: Color mapping in ggplot function
+
+Since the sex to color mapping only appears in the geom_point function, it is only used there. A single trend line is created for all observations.
+
+Most of the examples in this book place the data and mapping options in the ggplot function. Additionally, the phrases data= and mapping= are omitted since the first option always refers to data and the second option always refers to mapping.
+
+
+2.3 Graphs as objects
+A ggplot2 graph can be saved as a named R object (like a data frame), manipulated further, and then printed or saved to disk.
+
+
+```{r}
+# prepare data
+data(CPS85 , package = "mosaicData")
+plotdata <- CPS85[CPS85$wage < 40,]
+
+# create scatterplot and save it
+myplot <- ggplot(data = plotdata,
+                  aes(x = exper, y = wage)) +
+             geom_point()
+
+# print the graph
+myplot
+
+# make the points larger and blue
+# then print the graph
+myplot <- myplot + geom_point(size = 3, color = "blue")
+myplot
+
+# print the graph with a title and line of best fit
+# but don't save those changes
+myplot + geom_smooth(method = "lm") +
+  labs(title = "Mildly interesting graph")
+
+# print the graph with a black and white theme
+# but don't save those changes
+myplot + theme_bw()
+```
+This can be a real time saver (and help you avoid carpal tunnel syndrome). It is also handy when saving graphs programmatically.
+
+Now it’s time to try out other types of graphs.
+
+
+# *Chapter 3 Univariate Graphs*
+
+```{r}
+rm(list=ls())
+library(ggplot2)
+library(mosaicData)
+library(dplyr)
+library(scales)
+```
+
+Univariate graphs plot the distribution of data from a single variable. The variable can be categorical (e.g., race, sex) or quantitative (e.g., age, weight).
+
+## 3.1 Categorical
+
+The distribution of a single categorical variable is typically plotted with a bar chart, a pie chart, or (less commonly) a tree map.
+
+3.1.1 Bar chart
+The Marriage dataset contains the marriage records of 98 individuals in Mobile County, Alabama. Below, a bar chart is used to display the distribution of wedding participants by race.
+
+
+```{r}
+data(Marriage, package = "mosaicData")
+
+# plot the distribution of race
+ggplot(data=Marriage, aes(x = race)) + 
+  geom_bar()
+```
+Figure 3.1: Simple barchart
+
+The majority of participants are white, followed by black, with very few Hispanics or American Indians.
+
+You can modify the bar fill and border colors, plot labels, and title by adding options to the geom_bar function.
+
+
+```{r}
+# plot the distribution of race with modified colors and labels
+ggplot(Marriage, aes(x = race)) + 
+  geom_bar(fill = "cornflowerblue", 
+           color="black") +
+  labs(x = "Race", 
+       y = "Frequency", 
+       title = "Participants by race")
+```
+Figure 3.2: Barchart with modified colors, labels, and title
+
+
+3.1.1.1 Percents
+Bars can represent percents rather than counts. For bar charts, the code aes(x=race) is actually a shortcut for aes(x = race, y = ..count..), where ..count.. is a special variable representing the frequency within each category. You can use this to calculate percentages, by specifying the y variable explicitly.
+
+
+```{r}
+# plot the distribution as percentages
+ggplot(Marriage, 
+       aes(x = race, 
+           y = ..count.. / sum(..count..))) + 
+  geom_bar() +
+  labs(x = "Race", 
+       y = "Percent", 
+       title  = "Participants by race") +
+  scale_y_continuous(labels = scales::percent)
+```
+Figure 3.3: Barchart with percentages
+
+In the code above, the scales package is used to add % symbols to the y-axis labels.
+
+
+3.1.1.2 Sorting categories
+It is often helpful to sort the bars by frequency. In the code below, the frequencies are calculated explicitly. Then the reorder function is used to sort the categories by the frequency. The option *stat="identity"* tells the plotting function not to calculate counts, because they are supplied directly.
+
+```{r}
+plotdata <- Marriage %>%
+ count(race)
+```
+```{r}
+# plot the bars in ascending order
+ggplot(plotdata, 
+       aes(x = reorder(race, -n), 
+           y = n)) + 
+  geom_bar(stat = "identity") +
+  labs(x = "Race", 
+       y = "Frequency", 
+       title  = "Participants by race")
+```
+Figure 3.4: Sorted bar chart
+
+The graph bars are sorted in ascending order. Use reorder(race, -n) to sort in descending order.
+
+
+3.1.1.3 Labeling bars
+Finally, you may want to label each bar with its numerical value.
+
+
+```{r}
+# plot the bars with numeric labels
+ggplot(plotdata, 
+       aes(x = reorder(race, -n), 
+           y = n)) + 
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = n), 
+            vjust=-0.5) +
+  labs(x = "Race", 
+       y = "Frequency", 
+       title  = "Participants by race")
+```
+
+Here geom_text adds the labels, and vjust controls vertical justification. See Annotations for more details.
+
+Putting these ideas together, you can create a graph like the one below. The minus sign in reorder(race, -pct) is used to order the bars in descending order.
+
+```{r}
+plotdata <- Marriage %>%
+  count(race) %>%
+  mutate(pct = n / sum(n),
+         pctlabel = paste0(round(pct*100), "%"))
+
+# plot the bars as percentages, 
+# in decending order with bar labels
+ggplot(plotdata, 
+       aes(x = reorder(race, -pct),
+           y = pct)) + 
+  geom_bar(stat = "identity", 
+           fill = "indianred3", 
+           color = "black") +
+  geom_text(aes(label = pctlabel), 
+            vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Race", 
+       y = "Percent", 
+       title  = "Participants by race")
+```
+Figure 3.6: Sorted bar chart with percent labels
+
+3.1.1.4 Overlapping labels
+
+Category labels may overlap if (1) there are many categories or (2) the labels are long. Consider the distribution of marriage officials.
+
+```{r}
+# basic bar chart with overlapping labels
+ggplot(Marriage, aes(x = officialTitle)) + 
+  geom_bar() +
+  labs(x = "Officiate",
+       y = "Frequency",
+       title = "Marriages by officiate")
+```
+Figure 3.7: Barchart with problematic labels
+
+In this case, you can flip the x and y axes.
+
+```{r}
+# horizontal bar chart
+ggplot(Marriage, aes(x = officialTitle)) + 
+  geom_bar() +
+  labs(x = "",
+       y = "Frequency",
+       title = "Marriages by officiate") +
+  coord_flip()
+```
+
+Figure 3.8: Horizontal barchart
+
+Alternatively, you can rotate the axis labels.
+
+```{r}
+# bar chart with rotated labels
+ggplot(Marriage, aes(x = officialTitle)) + 
+  geom_bar() +
+  labs(x = "",
+       y = "Frequency",
+       title = "Marriages by officiate") +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1))
+```
+Figure 3.9: Barchart with rotated labels
+
+Finally, you can try staggering the labels. The trick is to add a newline \n to every other label.
+
+```{r}
+# bar chart with staggered labels
+lbls <- paste0(c("", "\n"), 
+               levels(Marriage$officialTitle))
+ggplot(Marriage, 
+       aes(x=factor(officialTitle, 
+                    labels = lbls))) + 
+  geom_bar() +
+  labs(x = "",
+       y = "Frequency",
+       title = "Marriages by officiate")
+```
+Figure 3.10: Barchart with staggered labels
+
+
+3.1.2 Pie chart
+Pie charts are controversial in statistics. If your goal is to compare the frequency of categories, you are better off with bar charts (humans are better at judging the length of bars than the volume of pie slices). If your goal is compare each category with the the whole (e.g., what portion of participants are Hispanic compared to all participants), and the number of categories is small, then pie charts may work for you. It takes a bit more code to make an attractive pie chart in R.
+
+```{r}
+# create a basic ggplot2 pie chart
+ plotdata <- Marriage %>%
+    count(race) %>%
+    arrange(desc(race)) %>%
+    mutate(prop = round(n * 100 / sum(n), 1),
+           lab.ypos = cumsum(prop) - 0.5  *prop)
+  
+  ggplot(plotdata, 
+         aes(x = "", 
+             y = prop, 
+             fill = race)) +
+    geom_bar(width = 1, 
+             stat = "identity", 
+             color = "black") +
+    coord_polar("y", 
+                start = 0, 
+                direction = -1) +
+    theme_void()
+```
+Figure 3.11: Basic pie chart
+
+Now let’s get fancy and add labels, while removing the legend.
+
+```{r}
+# create a pie chart with slice labels
+plotdata <- Marriage %>%
+  count(race) %>%
+  arrange(desc(race)) %>%
+  mutate(prop = round(n*100/sum(n), 1),
+         lab.ypos = cumsum(prop) - 0.5*prop)
+
+plotdata$label <- paste0(plotdata$race, "\n",
+                         round(plotdata$prop), "%")
+
+ggplot(plotdata, 
+       aes(x = "", 
+           y = prop, 
+           fill = race)) +
+  geom_bar(width = 1, 
+           stat = "identity", 
+           color = "black") +
+  geom_text(aes(y = lab.ypos, label = label), 
+            color = "black") +
+  coord_polar("y", 
+              start = 0, 
+              direction = -1) +
+  theme_void() +
+  theme(legend.position = "FALSE") +
+  labs(title = "Participants by race")
+```
+Figure 3.12: Pie chart with percent labels
+
+The pie chart makes it easy to compare each slice with the whole. For example, Back is seen to roughly a quarter of the total participants.
+
+```{r}
+library(treemapify)
+
+# create a treemap of marriage officials
+plotdata <- Marriage %>%
+  count(officialTitle)
+
+ggplot(plotdata, 
+       aes(fill = officialTitle, 
+           area = n)) +
+  geom_treemap() + 
+  labs(title = "Marriages by officiate")
+```
+Figure 3.13: Basic treemap
+
+Here is a more useful version with labels.
+
+```{r}
+# create a treemap with tile labels
+ggplot(plotdata, 
+       aes(fill = officialTitle, 
+           area = n, 
+           label = officialTitle)) +
+  geom_treemap() + 
+  geom_treemap_text(colour = "white", 
+                    place = "centre") +
+  labs(title = "Marriages by officiate") +
+  theme(legend.position = "none")
+```
+
+*3.2 Quantitative*
+The distribution of a single quantitative variable is typically plotted with a histogram, kernel density plot, or dot plot.
+
+3.2.1 Histogram
+
+```{r}
+# plot the age distribution using a histogram
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram() + 
+  labs(title = "Participants by age",
+       x = "Age")
+```
+
+Figure 3.15: Basic histogram
+
+Most participants appear to be in their early 20’s with another group in their 40’s, and a much smaller group in their later sixties and early seventies. This would be a multimodal distribution.
+
+Histogram colors can be modified using two options
+
+fill - fill color for the bars
+color - border color around the bars
+
+
+```{r}
+# plot the histogram with blue bars and white borders
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white") + 
+  labs(title="Participants by age",
+       x = "Age")
+```
+
+Figure 3.16: Histogram with specified fill and border colors
+
+3.2.1.1 Bins and bandwidths
+One of the most important histogram options is bins, which controls the number of bins into which the numeric variable is divided (i.e., the number of bars in the plot). The default is 30, but it is helpful to try smaller and larger numbers to get a better impression of the shape of the distribution.
+
+
+```{r}
+# plot the histogram with 20 bins
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white", 
+                 bins = 20) + 
+  labs(title="Participants by age", 
+       subtitle = "number of bins = 20",
+       x = "Age")
+```
+Figure 3.17: Histogram with a specified number of bins
+
+
+Alternatively, you can specify the binwidth, the width of the bins represented by the bars.
+
+```{r}
+# plot the histogram with a binwidth of 5
+ggplot(Marriage, aes(x = age)) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white", 
+                 binwidth = 5) + 
+  labs(title="Participants by age", 
+       subtitle = "binwidth = 5 years",
+       x = "Age")
+
+```
+Figure 3.18: Histogram with specified a bin width
+
+As with bar charts, the y-axis can represent counts or percent of the total.
+
+```{r}
+# plot the histogram with percentages on the y-axis
+library(scales)
+ggplot(Marriage, 
+       aes(x = age, 
+           y= ..count.. / sum(..count..))) +
+  geom_histogram(fill = "cornflowerblue", 
+                 color = "white", 
+                 binwidth = 5) + 
+  labs(title="Participants by age", 
+       y = "Percent",
+       x = "Age") +
+  scale_y_continuous(labels = percent)
+```
+Figure 3.19: Histogram with percentages on the y-axis
+
+
+
+3.2.2 Kernel Density plot
+An alternative to a histogram is the kernel density plot. Technically, kernel density estimation is a nonparametric method for estimating the probability density function of a continuous random variable. (What??) Basically, we are trying to draw a smoothed histogram, where the area under the curve equals one.
+
+
+```{r}
+# Create a kernel density plot of age
+ggplot(Marriage, aes(x = age)) +
+  geom_density() + 
+  labs(title = "Participants by age")
+```
+Figure 3.20: Basic kernel density plot
+
+The graph shows the distribution of scores. For example, the proportion of cases between 20 and 40 years old would be represented by the area under the curve between 20 and 40 on the x-axis.
+
+As with previous charts, we can use fill and color to specify the fill and border colors.
+
+```{r}
+# Create a kernel density plot of age
+ggplot(Marriage, aes(x = age)) +
+  geom_density(fill = "indianred3") + 
+  labs(title = "Participants by age")
+```
+Figure 3.21: Kernel density plot with fill
+
+3.2.2.1 Smoothing parameter
+The degree of smoothness is controlled by the bandwidth parameter bw. To find the default value for a particular variable, use the bw.nrd0 function. Values that are larger will result in more smoothing, while values that are smaller will produce less smoothing.
+
+
+```{r}
+# default bandwidth for the age variable
+bw.nrd0(Marriage$age)
+```
+
+```{r}
+# Create a kernel density plot of age
+ggplot(Marriage, aes(x = age)) +
+  geom_density(fill = "deepskyblue", 
+               bw = 1) + 
+  labs(title = "Participants by age",
+       subtitle = "bandwidth = 1")
+```
+Figure 3.22: Kernel density plot with a specified bandwidth
+
+In this example, the default bandwidth for age is 5.18. Choosing a value of 1 resulted in less smoothing and more detail.
+
+Kernel density plots allow you to easily see which scores are most frequent and which are relatively rare. However it can be difficult to explain the meaning of the y-axis to a non-statistician. (But it will make you look really smart at parties!)
+
+
+3.2.3 Dot Chart
+Another alternative to the histogram is the dot chart. Again, the quantitative variable is divided into bins, but rather than summary bars, each observation is represented by a dot. By default, the width of a dot corresponds to the bin width, and dots are stacked, with each dot representing one observation. This works best when the number of observations is small (say, less than 150).
+
+
+```{r}
+# plot the age distribution using a dotplot
+ggplot(Marriage, aes(x = age)) +
+  geom_dotplot() + 
+  labs(title = "Participants by age",
+       y = "Proportion",
+       x = "Age")
+```
+Figure 3.23: Basic dotplot
+
+The fill and color options can be used to specify the fill and border color of each dot respectively.
+
+```{r}
+# Plot ages as a dot plot using 
+# gold dots with black borders
+ggplot(Marriage, aes(x = age)) +
+  geom_dotplot(fill = "gold", 
+               color = "black") + 
+  labs(title = "Participants by age",
+       y = "Proportion",
+       x = "Age")
+```
+
+Figure 3.24: Dotplot with a specified color scheme
+
+There are many more options available. See the help for details and examples.
+
+
+# *Chapter 4 Bivariate Graphs*
+Bivariate graphs display the relationship between two variables. The type of graph will depend on the measurement level of the variables (categorical or quantitative).
+
+4.1 Categorical vs. Categorical
+When plotting the relationship between two categorical variables, stacked, grouped, or segmented bar charts are typically used. A less common approach is the mosaic chart.
+
+4.1.1 Stacked bar chart
+Let’s plot the relationship between automobile class and drive type (front-wheel, rear-wheel, or 4-wheel drive) for the automobiles in the Fuel economy dataset.
+
+```{r}
+# stacked bar chart
+ggplot(mpg, 
+       aes(x = class, 
+           fill = drv)) + 
+  geom_bar(position = "stack")
+```
+Figure 4.1: Stacked bar chart
+
+From the chart, we can see for example, that the most common vehicle is the SUV. All 2seater cars are rear wheel drive, while most, but not all SUVs are 4-wheel drive.
+
+Stacked is the default, so the last line could have also been written as geom_bar().
+
+
+## 4.1.2 Grouped bar chart
+Grouped bar charts place bars for the second categorical variable side-by-side. To create a grouped bar plot use the position = "dodge" option.
+
+
+```{r}
+# grouped bar plot
+ggplot(mpg, 
+       aes(x = class, 
+           fill = drv)) + 
+  geom_bar(position = "dodge")
+```
+Figure 4.2: Side-by-side bar chart
+
+Notice that all Minivans are front-wheel drive. By default, zero count bars are dropped and the remaining bars are made wider. This may not be the behavior you want. You can modify this using the position = position_dodge(preserve = "single")" option.
+
+```{r}
+# grouped bar plot preserving zero count bars
+ggplot(mpg, 
+       aes(x = class, 
+           fill = drv)) + 
+  geom_bar(position = position_dodge(preserve = "single"))
+```
+
+Figure 4.3: Side-by-side bar chart with zero count bars retained
+
+Note that this option is only available in the latest development version of ggplot2, but should should be generally available shortly.
+
+
+
+4.1.3 Segmented bar chart
+A segmented bar plot is a stacked bar plot where each bar represents 100 percent. You can create a segmented bar chart using the position = "filled" option.
+
+
+```{r}
+# bar plot, with each bar representing 100%
+ggplot(mpg, 
+       aes(x = class, 
+           fill = drv)) + 
+  geom_bar(position = "fill") +
+  labs(y = "Proportion")
+```
+Figure 4.4: Segmented bar chart
+
+This type of plot is particularly useful if the goal is to compare the percentage of a category in one variable across each level of another variable. For example, the proportion of front-wheel drive cars go up as you move from compact, to midsize, to minivan.
+
+
+
+4.1.4 Improving the color and labeling
+You can use additional options to improve color and labeling. In the graph below
+
+factor modifies the order of the categories for the class variable and both the order and the labels for the drive variable
+scale_y_continuous modifies the y-axis tick mark labels
+labs provides a title and changed the labels for the x and y axes and the legend
+scale_fill_brewer changes the fill color scheme
+theme_minimal removes the grey background and changed the grid color
+
+```{r}
+# bar plot, with each bar representing 100%, 
+# reordered bars, and better labels and colors
+library(scales)
+ggplot(mpg, 
+       aes(x = factor(class,
+                      levels = c("2seater", "subcompact", 
+                                "compact", "midsize", 
+                                "minivan", "suv", "pickup")),
+           fill = factor(drv, 
+                         levels = c("f", "r", "4"),
+                         labels = c("front-wheel", 
+                                    "rear-wheel", 
+                                    "4-wheel")))) + 
+  geom_bar(position = "fill") +
+  scale_y_continuous(breaks = seq(0, 1, .2), 
+                     label = percent) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Percent", 
+       fill = "Drive Train",
+       x = "Class",
+       title = "Automobile Drive by Class") +
+  theme_minimal()
+```
+Figure 4.5: Segmented bar chart with improved labeling and color
+
+In the graph above, the factor function was used to reorder and/or rename the levels of a categorical variable. You could also apply this to the original dataset, making these changes permanent. It would then apply to all future graphs using that dataset. For example:
+
+```{r}
+# change the order the levels for the categorical variable "class"
+mpg$class = factor(mpg$class,
+                   levels = c("2seater", "subcompact", 
+                              "compact", "midsize", 
+                              "minivan", "suv", "pickup"))
+```
+I placed the factor function within the ggplot function to demonstrate that, if desired, you can change the order of the categories and labels for the categories for a single graph.
+
+The other functions are discussed more fully in the section on Customizing graphs.
+
+Next, let’s add percent labels to each segment. First, we’ll create a summary dataset that has the necessary labels.
+```{r}
+plotdata <- mpg %>%
+  group_by(class, drv) %>%
+  summarize(n = n()) %>% 
+  mutate(pct = n/sum(n),
+         lbl = scales::percent(pct))
+plotdata
+```
+Next, we’ll use this dataset and the geom_text function to add labels to each bar segment.
+
+```{r}
+# create segmented bar chart
+# adding labels to each segment
+
+ggplot(plotdata, 
+       aes(x = factor(class,
+                      levels = c("2seater", "subcompact", 
+                                 "compact", "midsize", 
+                                 "minivan", "suv", "pickup")),
+           y = pct,
+           fill = factor(drv, 
+                         levels = c("f", "r", "4"),
+                         labels = c("front-wheel", 
+                                    "rear-wheel", 
+                                    "4-wheel")))) + 
+  geom_bar(stat = "identity",
+           position = "fill") +
+  scale_y_continuous(breaks = seq(0, 1, .2), 
+                     label = percent) +
+  geom_text(aes(label = lbl), 
+            size = 3, 
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(y = "Percent", 
+       fill = "Drive Train",
+       x = "Class",
+       title = "Automobile Drive by Class") +
+  theme_minimal()
+```
+Figure 4.6: Segmented bar chart with value labeling
+
+Now we have a graph that is easy to read and interpret.
+
+
+4.1.5 Other plots
+Mosaic plots provide an alternative to stacked bar charts for displaying the relationship between categorical variables. They can also provide more sophisticated statistical information.
+
+4.2 Quantitative vs. Quantitative
+The relationship between two quantitative variables is typically displayed using scatterplots and line graphs.
+
+
+4.2.1 Scatterplot
+The simplest display of two quantitative variables is a scatterplot, with each variable represented on an axis. For example, using the Salaries dataset, we can plot experience (yrs.since.phd) vs. academic salary (salary) for college professors.
+
+```{r}
+data(Salaries, package="carData")
+
+# simple scatterplot
+ggplot(Salaries, 
+       aes(x = yrs.since.phd, 
+           y = salary)) +
+  geom_point()
+```
+Figure 4.7: Simple scatterplot
+
+geom_point options can be used to change the
+
+color - point color
+size - point size
+shape - point shape
+alpha - point transparency. Transparency ranges from 0 (transparent) to 1 (opaque), and is a useful parameter when points overlap.
+The functions scale_x_continuous and scale_y_continuous control the scaling on x and y axes respectively.
+
+See Customizing graphs for details.
+
+We can use these options and functions to create a more attractive scatterplot.
+
+```{r}
+# enhanced scatter plot
+ggplot(Salaries, 
+       aes(x = yrs.since.phd, 
+           y = salary)) +
+  geom_point(color="cornflowerblue", 
+             size = 2, 
+             alpha=.8) +
+  scale_y_continuous(label = scales::dollar, 
+                     limits = c(50000, 250000)) +
+  scale_x_continuous(breaks = seq(0, 60, 10), 
+                     limits=c(0, 60)) + 
+  labs(x = "Years Since PhD",
+       y = "",
+       title = "Experience vs. Salary",
+       subtitle = "9-month salary for 2008-2009")
+```
+Figure 4.8: Scatterplot with color, transparency, and axis scaling
+
+4.2.1.1 Adding best fit lines
+It is often useful to summarize the relationship displayed in the scatterplot, using a best fit line. Many types of lines are supported, including linear, polynomial, and nonparametric (loess). By default, 95% confidence limits for these lines are displayed.
+
+
+```{r}
+# scatterplot with linear fit line
+ggplot(Salaries,
+       aes(x = yrs.since.phd, 
+           y = salary)) +
+  geom_point(color= "steelblue") +
+  geom_smooth(method = "lm")
+```
+
+Figure 4.9: Scatterplot with linear fit line
+
+Clearly, salary increases with experience. However, there seems to be a dip at the right end - professors with significant experience, earning lower salaries. A straight line does not capture this non-linear effect. A line with a bend will fit better here.
+
+A polynomial regression line provides a fit line of the form
+
+\hat{y} = \beta_{0} +\beta_{1}x + \beta{2}x^{2} + \beta{3}x^{3} + \beta{4}x^{4} + \dots
+
+Typically either a quadratic (one bend), or cubic (two bends) line is used. It is rarely necessary to use a higher order( >3 ) polynomials. Applying a quadratic fit to the salary dataset produces the following result.
+
+
+```{r}
+# scatterplot with quadratic line of best fit
+ggplot(Salaries, 
+       aes(x = yrs.since.phd, 
+           y = salary)) +
+  geom_point(color= "steelblue") +
+  geom_smooth(method = "lm", 
+              formula = y ~ poly(x, 2), 
+              color = "indianred3")
+```
+Figure 4.10: Scatterplot with quadratic fit line
+
+Finally, a smoothed nonparametric fit line can often provide a good picture of the relationship. The default in ggplot2 is a loess line which stands for for locally weighted scatterplot smoothing.
+
+
+```{r}
+# scatterplot with loess smoothed line
+ggplot(Salaries, 
+       aes(x = yrs.since.phd, 
+           y = salary)) +
+  geom_point(color= "steelblue") +
+  geom_smooth(color = "tomato")
+```
+Figure 4.11: Scatterplot with nonparametric fit line
+
+You can suppress the confidence bands by including the option se = FALSE.
+
+
+Here is a complete (and more attractive) plot.
+
+```{r}
+# scatterplot with loess smoothed line 
+# and better labeling and color
+ggplot(Salaries, 
+       aes(x = yrs.since.phd, 
+           y = salary)) +
+  geom_point(color="cornflowerblue", 
+             size = 2, 
+             alpha = .6) +
+  geom_smooth(size = 1.5,
+              color = "darkgrey",se=FALSE) +
+  scale_y_continuous(label = scales::dollar, 
+                     limits = c(50000, 250000)) +
+  scale_x_continuous(breaks = seq(0, 60, 10), 
+                     limits = c(0, 60)) + 
+  labs(x = "Years Since PhD",
+       y = "",
+       title = "Experience vs. Salary",
+       subtitle = "9-month salary for 2008-2009") +
+  theme_minimal()
+```
+Figure 4.12: Scatterplot with nonparametric fit line
+
+
+4.2.2 Line plot
+When one of the two variables represents time, a line plot can be an effective method of displaying relationship. For example, the code below displays the relationship between time (year) and life expectancy (lifeExp) in the United States between 1952 and 2007. The data comes from the gapminder dataset.
+
+
+```{r}
+data(gapminder, package="gapminder")
+
+# Select US cases
+plotdata <- filter(gapminder, 
+                   country == "Peru")
+
+# simple line plot
+ggplot(plotdata, 
+       aes(x = year, 
+           y = lifeExp)) +
+  geom_line() 
+```
+Figure 4.13: Simple line plot
+
+It is hard to read individual values in the graph above. In the next plot, we’ll add points as well.
+
+```{r}
+# line plot with points
+# and improved labeling
+ggplot(plotdata, 
+       aes(x = year, 
+           y = lifeExp)) +
+  geom_line(size = 1.5, 
+            color = "lightgrey") +
+  geom_point(size = 3, 
+             color = "steelblue") +
+  labs(y = "Life Expectancy (years)", 
+       x = "Year",
+       title = "Life expectancy changes over time",
+       subtitle = "Peru (1952-2007)",
+       caption = "Source: http://www.gapminder.org/data/")
+```
+Figure 4.14: Line plot with points and labels
+
+Time dependent data is covered in more detail under Time series. Customizing line graphs is covered in the Customizing graphs section.
+
+
+4.3 Categorical vs. Quantitative
+When plotting the relationship between a categorical variable and a quantitative variable, a large number of graph types are available. These include bar charts using summary statistics, grouped kernel density plots, side-by-side box plots, side-by-side violin plots, mean/sem plots, ridgeline plots, and Cleveland plots.
+
+
+4.3.1 Bar chart (on summary statistics)
+In previous sections, bar charts were used to display the number of cases by category for a single variable or for two variables. You can also use bar charts to display other summary statistics (e.g., means or medians) on a quantitative variable for each level of a categorical variable.
+
+For example, the following graph displays the mean salary for a sample of university professors by their academic rank.
+
+
+```{r}
+data(Salaries, package="carData")
+
+# calculate mean salary for each rank
+plotdata <- Salaries %>%
+  group_by(rank) %>%
+  summarize(mean_salary = mean(salary))
+
+# plot mean salaries
+ggplot(plotdata, 
+       aes(x = rank, 
+           y = mean_salary)) +
+  geom_bar(stat = "identity")
+```
+Figure 4.15: Bar chart displaying means
+
+We can make it more attractive with some options.
+
+```{r}
+# plot mean salaries in a more attractive fashion
+ggplot(plotdata, 
+       aes(x = factor(rank,
+                      labels = c("Assistant\nProfessor",
+                                 "Associate\nProfessor",
+                                 "Full\nProfessor")), 
+                      y = mean_salary)) +
+  geom_bar(stat = "identity", 
+           fill = "cornflowerblue") +
+  geom_text(aes(label = dollar(mean_salary)), 
+            vjust = -0.25) +
+  scale_y_continuous(breaks = seq(0, 130000, 20000), 
+                     label = dollar) +
+  labs(title = "Mean Salary by Rank", 
+       subtitle = "9-month academic salary for 2008-2009",
+       x = "",
+       y = "")
+```
+
+Figure 4.16: Bar chart displaying means
+
+One limitation of such plots is that they do not display the distribution of the data - only the summary statistic for each group. The plots below correct this limitation to some extent.
+
+4.3.2 Grouped kernel density plots
+One can compare groups on a numeric variable by superimposing kernel density plots in a single graph.
+
+
+```{r}
+# plot the distribution of salaries 
+# by rank using kernel density plots
+ggplot(Salaries, 
+       aes(x = salary, 
+           fill = rank)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Salary distribution by rank")
+```
+Figure 4.17: Grouped kernel density plots
+
+The alpha option makes the density plots partially transparent, so that we can see what is happening under the overlaps. Alpha values range from 0 (transparent) to 1 (opaque). The graph makes clear that, in general, salary goes up with rank. However, the salary range for full professors is very wide.
+
+
+4.3.3 Box plots
+A boxplot displays the 25th percentile, median, and 75th percentile of a distribution. The whiskers (vertical lines) capture roughly 99% of a normal distribution, and observations outside this range are plotted as points representing outliers (see the figure below).
+
+Side-by-side box plots are very useful for comparing groups (i.e., the levels of a categorical variable) on a numerical variable.
+
+```{r}
+# plot the distribution of salaries by rank using boxplots
+ggplot(Salaries, 
+       aes(x = rank, 
+           y = salary)) +
+  geom_boxplot() +
+  labs(title = "Salary distribution by rank")
+```
+Figure 4.18: Side-by-side boxplots
+
+Notched boxplots provide an approximate method for visualizing whether groups differ. Although not a formal test, if the notches of two boxplots do not overlap, there is strong evidence (95% confidence) that the medians of the two groups differ.
+
+
+
+```{r}
+# plot the distribution of salaries by rank using boxplots
+ggplot(Salaries, aes(x = rank, 
+                     y = salary)) +
+  geom_boxplot(notch = TRUE, 
+               fill = "cornflowerblue", 
+               alpha = .7) +
+  labs(title = "Salary distribution by rank")
+```
+Figure 4.19: Side-by-side notched boxplots
+
+In the example above, all three groups appear to differ.
+
+One of the advantages of boxplots is that their widths are not usually meaningful. This allows you to compare the distribution of many groups in a single graph.
+
+
+4.3.4 Violin plots
+Violin plots are similar to kernel density plots, but are mirrored and rotated 90o.
+
+```{r}
+# plot the distribution of salaries 
+# by rank using violin plots
+ggplot(Salaries, 
+       aes(x = rank,
+           y = salary)) +
+  geom_violin() +
+  labs(title = "Salary distribution by rank")
+```
+
+Figure 4.20: Side-by-side violin plots
+
+A useful variation is to superimpose boxplots on violin plots.
+
+
+```{r}
+# plot the distribution using violin and boxplots
+ggplot(Salaries, 
+       aes(x = rank, 
+           y = salary)) +
+  geom_violin(fill = "cornflowerblue") +
+  geom_boxplot(width = .2, 
+               fill = "orange",
+               outlier.color = "orange",
+               outlier.size = 2) + 
+  labs(title = "Salary distribution by rank")
+```
+Figure 4.21: Side-by-side violin/box plots
+
+4.3.5 Ridgeline plots
+A ridgeline plot (also called a joyplot) displays the distribution of a quantitative variable for several groups. They’re similar to kernel density plots with vertical faceting, but take up less room. Ridgeline plots are created with the ggridges package.
+
+Using the Fuel economy dataset, let’s plot the distribution of city driving miles per gallon by car class.
+
+
+```{r}
+# create ridgeline graph
+library(ggplot2)
+library(ggridges)
+
+ggplot(mpg, 
+       aes(x = cty, 
+           y = class, 
+           fill = class)) +
+  geom_density_ridges() + 
+  theme_ridges() +
+  labs("Highway mileage by auto class") +
+  theme(legend.position = "none")
+```
+
+
+
+

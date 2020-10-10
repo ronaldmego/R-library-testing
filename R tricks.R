@@ -260,3 +260,37 @@ while (theDate <= end)
   print(paste0("http://website.com/api/",format(theDate,"%d%b%y")))
   theDate <- theDate + 1                    
 }
+
+
+
+
+
+
+
+
+#Librerias instaladas y sus versiones
+ip <- as.data.frame(installed.packages()[,c(1,3:4)])
+rownames(ip) <- NULL
+ip <- ip[is.na(ip$Priority),1:2,drop=FALSE]
+print(ip, row.names=FALSE)
+#para ver una descripción de las librerias instaladas
+library()
+#Comando para instalar librerias recomendadas, excepto las ya instaladas
+list.of.packages <- c(####### recomendados
+  "dplyr", "plyr", "data.table", "missForest", "missMDA",
+  "outliers", "evir", "features", "RRF", "FactoMineR", "CCP",
+  "ggplot2", "googleVis", "car", "randomForest",
+  "rminer", "CORElearn", "caret", "cba","mice",
+  "Rankcluster", "forecast", "ltsa", "survival", "BaSTA",
+  "lsmeans", "comparison", "regtest", "ACD", "binomTools", 
+  "Daim", "clusteval", "sigclust", "pROC", "timeROC", "Rcpp",
+  "parallel", "XML", "httr", "rjson", "jsonlite", "shiny",
+  "rmarkdown", "tm", "sqldf", "RODBC","xlsReadWrite",
+  ###### mios
+  "rpart","rattle","party","tree","MVN",
+  ###### no encuentro
+  "openNLP", "MongoDB","rCharts", "bigrf")
+new.packages <- list.of.packages[!(list.of.packages 
+                                   %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+lapply(list.of.packages,function(x){library(x,character.only=TRUE)})
