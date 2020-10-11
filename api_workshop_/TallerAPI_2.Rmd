@@ -1,0 +1,73 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Extracción del histórico de dividendos de una empreesa  -------------------------------------------------------
+
+```{r}
+rm(list = ls())
+
+library(httr) #brinda las funciones get(), fromJSON(), add_headers()
+library(jsonlite)
+
+```
+
+# Api: Finnhub https://finnhub.io
+
+El metodo normal de hacer el request al api es asi:
+"/stock/dividend?symbol=AAPL&from=2019-02-01&to=2020-02-01"
+pero el autor indica que se puede hacer tambien con una lista
+
+url = "https://finnhub.io/api/v1/stock/dividend"
+querystring = list(
+  symbol= "AAPL",
+  from="1900-01-01",
+  to="2020-03-31",
+  token = "bsj2vvvrh5rcthrm5n10"
+  
+Como esto ya no es gratuito ahora cambiare a otro api
+Earnings Calendar:
+```{r}
+url = "https://finnhub.io/api/v1/calendar/earnings"
+
+querystring = list(
+  from="1900-01-01",
+  to="2020-08-31",
+  symbol= "AAPL",
+  token = "bsj2vvvrh5rcthrm5n10"
+  )
+```
+
+
+```{r}
+finan <- GET(url, query = querystring)
+finan
+```
+
+
+```{r}
+finan <- fromJSON(content(finan, type = "text"))
+finan
+```
+tomo el dataframe y paso a fecha la columna date
+
+```{r}
+df<-finan[["earningsCalendar"]]
+```
+
+#paso a fecha
+
+```{r}
+df$date <- as.Date(df$date)
+```
+
+
+Grafico
+```{r}
+library(ggplot2)
+
+df %>%
+  ggplot(aes(date, revenueEstimate)) + geom_line()+ theme_minimal()
+```
+

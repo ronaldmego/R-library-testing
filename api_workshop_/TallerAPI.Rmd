@@ -1,0 +1,76 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+######################### This is API Class #########################
+
+```{r}
+rm(list = ls())
+
+library(httr) #brinda las funciones get(), fromJSON(), add_headers()
+library(jsonlite)
+
+#####
+library(rvest) #Para scrapear
+```
+
+# Mapa en tiempo real de la posición de los Aviones -----------------------
+# Página: https://opensky-network.org/apidoc/rest.html
+
+```{r}
+url = "https://opensky-network.org/api/states/all"
+avion <- GET(url)
+avion
+```
+Devuelve un objeto Json con dos listas: el tiempo y los estados
+```{r}
+avion <- fromJSON(content(avion, type = "text"))
+```
+
+nos quedamos con los estados:
+```{r}
+avion <- avion[["states"]]
+```
+
+
+# Extraer avion de columnas para saber qué es cada cosa #Screapea
+
+```{r}
+url = "https://opensky-network.org/apidoc/rest.html"
+nombres <- read_html(url) %>% html_nodes("#all-state-vectors")  %>% html_nodes("#response")  %>% html_nodes('.docutils') %>% html_table()
+```
+
+#asignar los nombres a las columnas
+```{r}
+colnames(avion) <- nombres[[2]]$Property
+```
+
+
+```{r}
+avion <- as.data.frame(avion, stringsAsFactors = FALSE)
+```
+
+#si en caso queremos guardar la data
+# write.csv(avion, "aviones.csv", row.names = FALSE)
+# avion <- read.csv("aviones.csv")
+
+
+```{r}
+# Visualizamos los avion
+#install.packages('leaflet')
+library(leaflet)
+
+# Convertirmos la latitud y longitud en número, ya que vienen en string (texto)
+avion$longitude <- as.numeric(avion$longitude)
+avion$latitude <- as.numeric(avion$latitude)
+```
+# Creamos el mapa
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addCircles(lng = avion$longitude, lat = avion$latitude, color = "#ff5733", opacity = 0.3) 
+```
+
+## ¿Y si automatizaramos el proceso para guardar los avion cada minuto?

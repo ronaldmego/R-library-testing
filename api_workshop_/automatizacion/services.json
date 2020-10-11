@@ -1,0 +1,308 @@
+{
+	"info": {
+		"_postman_id": "9eaa249c-db8a-4334-bd09-36a733edd959",
+		"name": "PerúQuioscoData",
+		"description": "APIS para el equipo de DATA EC.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1  Cortesía Corporativa",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "b74ab01acdee71e9bf09763d2ac6b9bb",
+						"type": "text"
+					},
+					{
+						"key": "Arc-Site",
+						"value": "gestion",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://dev.peruquiosco.pe/service/report-courtesy-corporate?state=all&date_ini=2020-01-01&date_end=2020-06-01",
+					"protocol": "http",
+					"host": [
+						"dev",
+						"peruquiosco",
+						"pe"
+					],
+					"path": [
+						"service",
+						"report-courtesy-corporate"
+					],
+					"query": [
+						{
+							"key": "state",
+							"value": "all"
+						},
+						{
+							"key": "date_ini",
+							"value": "2020-01-01"
+						},
+						{
+							"key": "date_end",
+							"value": "2020-06-01"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2 Cortesía General",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "b74ab01acdee71e9bf09763d2ac6b9bb",
+						"type": "text"
+					},
+					{
+						"key": "Arc-Site",
+						"value": "gestion",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://dev.peruquiosco.pe/service/report-courtesy-general?state=all",
+					"protocol": "http",
+					"host": [
+						"dev",
+						"peruquiosco",
+						"pe"
+					],
+					"path": [
+						"service",
+						"report-courtesy-general"
+					],
+					"query": [
+						{
+							"key": "state",
+							"value": "all",
+							"description": "Estados => 0: Pendiente, 1:Activo, 2: Anulado"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3 Suscripciones Web All",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "b74ab01acdee71e9bf09763d2ac6b9bb",
+						"type": "text"
+					},
+					{
+						"key": "Arc-Site",
+						"value": "gestion",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://dev.peruquiosco.pe/service/report-subscriptions-all?date_ini=2020-01-01&date_end=2020-06-01&annulled_ini&annulled_end&state=all",
+					"protocol": "http",
+					"host": [
+						"dev",
+						"peruquiosco",
+						"pe"
+					],
+					"path": [
+						"service",
+						"report-subscriptions-all"
+					],
+					"query": [
+						{
+							"key": "date_ini",
+							"value": "2020-01-01"
+						},
+						{
+							"key": "date_end",
+							"value": "2020-06-01"
+						},
+						{
+							"key": "annulled_ini",
+							"value": null
+						},
+						{
+							"key": "annulled_end",
+							"value": null
+						},
+						{
+							"key": "state",
+							"value": "all",
+							"description": "1: Activos | 2: Anulados/Declinados"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4 Suscripciones SIEBEL",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "b74ab01acdee71e9bf09763d2ac6b9bb",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://dev.peruquiosco.pe/service/report-subscription-siebel-all?date_ini=2020-01-01&date_end=2020-06-01&annulled_ini=&annulled_end=&state=all",
+					"protocol": "http",
+					"host": [
+						"dev",
+						"peruquiosco",
+						"pe"
+					],
+					"path": [
+						"service",
+						"report-subscription-siebel-all"
+					],
+					"query": [
+						{
+							"key": "date_ini",
+							"value": "2020-01-01"
+						},
+						{
+							"key": "date_end",
+							"value": "2020-06-01"
+						},
+						{
+							"key": "annulled_ini",
+							"value": ""
+						},
+						{
+							"key": "annulled_end",
+							"value": ""
+						},
+						{
+							"key": "state",
+							"value": "all",
+							"description": "0: Suspendido | 1: Activo | 3:Anulado"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5 Pagos Únicos",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "b74ab01acdee71e9bf09763d2ac6b9bb",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://dev.peruquiosco.pe/service/report-payment-unique-all?date_ini=2020-05-01&date_end=2020-06-01",
+					"protocol": "http",
+					"host": [
+						"dev",
+						"peruquiosco",
+						"pe"
+					],
+					"path": [
+						"service",
+						"report-payment-unique-all"
+					],
+					"query": [
+						{
+							"key": "date_ini",
+							"value": "2020-05-01"
+						},
+						{
+							"key": "date_end",
+							"value": "2020-06-01"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6 Suscripciones Print",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "b74ab01acdee71e9bf09763d2ac6b9bb",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://dev.peruquiosco.pe/service/report-subscription-print?date_ini=2020-01-01&date_end=2020-06-01",
+					"protocol": "http",
+					"host": [
+						"dev",
+						"peruquiosco",
+						"pe"
+					],
+					"path": [
+						"service",
+						"report-subscription-print"
+					],
+					"query": [
+						{
+							"key": "date_ini",
+							"value": "2020-01-01"
+						},
+						{
+							"key": "date_end",
+							"value": "2020-06-01"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
