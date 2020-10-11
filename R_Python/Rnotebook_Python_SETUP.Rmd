@@ -16,17 +16,18 @@ instalaciones de python que tengo
 conda_list()
 ```
 
+#para elegir el exe de pyhton que esta en el ambiente r-tf
 ```{r}
 use_condaenv("r-tf")
 ```
 
-
+#otra forma de especificar el exe de python a usar.
 ```{r}
 use_python("D:\\Temporal\\Anaconda\\envs\\r-tf\\python.exe",required = TRUE)
 #use_python("D:\\Temporal\\Anaconda\\python.exe",required = TRUE)
 ```
 
-
+#para ver que directorio de python estoy usando
 ```{r}
 py_config()
 ```

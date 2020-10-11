@@ -1,0 +1,935 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# https://anderfernandez.com/blog/reticulate-usar-python-en-r/
+# https://stackoverflow.com/questions/52741484/how-to-import-pandas-using-r-studio
+
+
+```{r}
+library(reticulate)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+```
+
+```{python}
+df = pd.read_csv('olympics.csv', index_col=0, skiprows=1)
+
+for col in df.columns:
+    if col[:2]=='01':
+        df.rename(columns={col:'Gold'+col[4:]}, inplace=True)
+    if col[:2]=='02':
+        df.rename(columns={col:'Silver'+col[4:]}, inplace=True)
+    if col[:2]=='03':
+        df.rename(columns={col:'Bronze'+col[4:]}, inplace=True)
+    if col[:1]=='№':
+        df.rename(columns={col:'#'+col[1:]}, inplace=True)
+
+names_ids = df.index.str.split('\s\(') # split the index by '('
+
+df.index = names_ids.str[0] # the [0] element is the country name (new index) 
+df['ID'] = names_ids.str[1].str[:3] # the [1] element is the abbreviation or ID (take first 3 characters from that)
+
+df = df.drop('Totals')
+df.head()
+```
+#Q1: Which country has won the most gold medals in summer games?
+```{python}
+df['Gold'].max()
+```
+
+```{python}
+q=df[df['Gold']>=df['Gold'].max()]
+q.head()
+r=q.index
+r[0]
+```
+
+```{python}
+def answer_one():
+    q=df[df['Gold']>=df['Gold'].max()]
+    return q.index[0] #"YOUR ANSWER HERE"
+answer_one()
+```
+
+Q2: Which country had the biggest difference between their summer and winter gold medal counts?
+```{python}
+(df['Gold']-df['Gold.1']).max()
+```
+
+```{python}
+q=(df['Gold']-df['Gold.1']) >= (df['Gold']-df['Gold.1']).max()
+type(q)
+```
+
+
+```{python}
+r=q[q==True].index.tolist()
+r[0]
+```
+
+```{python}
+def answer_two():
+    q=(df['Gold']-df['Gold.1']) >= (df['Gold']-df['Gold.1']).max()
+    r=q[q==True].index.tolist()
+    s=r[0]
+    return s #"YOUR ANSWER HERE"
+answer_two()
+```
+
+Q3: Which country has the biggest difference between their summer gold medal counts and winter gold medal counts relative to their total gold medal count?
+
+Only include countries that have won at least 1 gold in both summer and winter.
+```{python}
+q = df.where((df['Gold'] > 0)& (df['Gold.1'] > 0))
+q.head(6)
+```
+
+```{python}
+q=df.where((df['Gold'] > 0)& (df['Gold.1'] > 0))[['Gold','Gold.1','Gold.2']]
+q.head(6)
+```
+
+```{python}
+q=df.where((df['Gold'] > 0)& (df['Gold.1'] > 0))[['Gold','Gold.1','Gold.2']]
+q['ratio']=(q['Gold']-q['Gold.1'])/q['Gold.2']
+q.head(6)
+```
+
+```{python}
+q=df.where((df['Gold'] > 0)& (df['Gold.1'] > 0))[['Gold','Gold.1','Gold.2']]
+q['ratio']=(q['Gold']-q['Gold.1'])/q['Gold.2']
+q['ratio'].max()
+```
+
+```{python}
+r=q[q['ratio']>=q['ratio'].max()].index.tolist()
+r[0]
+```
+
+```{python}
+def answer_three():
+    q=df.where((df['Gold'] > 0)& (df['Gold.1'] > 0))[['Gold','Gold.1','Gold.2']]
+    q['ratio']=(q['Gold']-q['Gold.1'])/q['Gold.2']
+    r=q[q['ratio']>=q['ratio'].max()].index.tolist()
+    return r[0] #"YOUR ANSWER HERE"
+answer_three()
+```
+
+
+Q4: Write a function that creates a Series called "Points" which is a weighted value where each gold medal (Gold.2) counts for 3 points, silver medals (Silver.2) for 2 points, and bronze medals (Bronze.2) for 1 point. The function should return only the column (a Series object) which you created, with the country names as indices.
+
+This function should return a Series named Points of length 146
+```{python}
+Points=df['Gold.2']*3+df['Silver.2']*2+df['Bronze.2']
+Points.head()
+type(Points)
+len(Points)
+```
+
+```{python}
+def answer_four():
+    Points=df['Gold.2']*3+df['Silver.2']*2+df['Bronze.2']
+    return Points #"YOUR ANSWER HERE"
+answer_four()
+```
+
+Q5: Which state has the most counties in it? (hint: consider the sumlevel key carefully! You'll need this for future questions too...)
+
+This function should return a single string value.
+```{python}
+census_df = pd.read_csv('census.csv')
+census_df.head()
+```
+
+```{python}
+q_df=census_df['STNAME']
+q_df.head()
+```
+
+
+```{python}
+rt=q_df.value_counts()
+type(rt)
+rt.max()
+rt[rt>=rt.max()].index.tolist()[0]
+```
+
+```{python}
+def answer_five():
+    q_df=census_df['STNAME']
+    rt=q_df.value_counts()
+    return rt[rt>=rt.max()].index.tolist()[0] #"YOUR ANSWER HERE"
+answer_five()
+```
+
+Q6: Only looking at the three most populous counties for each state, what are the three most populous states (in order of highest population to lowest population)? Use CENSUS2010POP.
+This function should return a list of string values
+```{python}
+census_df1=census_df[census_df['SUMLEV'] == 50]
+census_df1.head()
+```
+
+```{python}
+census_df2=census_df1[['STNAME','CTYNAME','CENSUS2010POP']]
+census_df2.head()
+```
+
+#otra opcion
+```{python}
+census_df2b=census_df1.iloc[:,[5,6,7]]
+census_df2b.head()
+```
+
+```{python}
+census_df3=census_df2.groupby(['STNAME'])
+census_df3.head()
+type(census_df3)
+```
+
+
+```{python}
+census_df4=census_df3.apply(lambda x: x.sort_values(['CENSUS2010POP'],ascending=False))
+census_df4.head()
+```
+
+```{python}
+census_df5=census_df4.reset_index(drop=True)
+census_df5.head()
+```
+
+
+```{python}
+census_df6=census_df5.groupby(['STNAME'])
+census_df7=census_df6.head(3)
+census_df7.head()
+```
+
+```{python}
+census_df8=census_df7.groupby(['STNAME']).sum()
+census_df8.head()
+```
+
+```{python}
+rt=census_df8.nlargest(3,'CENSUS2010POP').index.tolist()
+rt
+```
+
+```{python}
+def answer_six():
+    census_df1=census_df[census_df['SUMLEV'] == 50]
+    census_df2=census_df1[['STNAME','CTYNAME','CENSUS2010POP']]
+    census_df3=census_df2.groupby(['STNAME'])
+    census_df4=census_df3.apply(lambda x: x.sort_values(['CENSUS2010POP'],ascending=False))
+    census_df5=census_df4.reset_index(drop=True)
+    census_df6=census_df5.groupby(['STNAME'])
+    census_df7=census_df6.head(3)
+    census_df8=census_df7.groupby(['STNAME']).sum()
+    rt=census_df8.nlargest(3,'CENSUS2010POP').index.tolist()
+    return rt
+answer_six()
+```
+
+Q7: Which county has had the largest absolute change in population within the period 2010-2015? (Hint: population values are stored in columns POPESTIMATE2010 through POPESTIMATE2015, you need to consider all six columns.)
+
+e.g. If County Population in the 5 year period is 100, 120, 80, 105, 100, 130, then its largest change in the period would be |130-80| = 50.
+
+This function should return a single string value.
+```{python}
+def answer_seven():
+    census_df1b=census_df[census_df['SUMLEV'] == 50]
+    census_df2b=census_df1b.iloc[:,[5,6,9,10,11,12,13,14]]
+    y=[]
+    y=pd.DataFrame(y,columns=['POPESTIMATE','STNAME','CTYNAME']) 
+    for i in range(census_df2b.shape[0]): #range(3142)
+        for j in range (census_df2b.columns.get_loc('POPESTIMATE2010'),census_df2b.columns.get_loc('POPESTIMATE2015')+1): #range (2,8)
+            y=y.append({'POPESTIMATE':census_df2b.iloc[i,j],'STNAME':census_df2b.iloc[i,0],'CTYNAME':census_df2b.iloc[i,1]},ignore_index=True)
+    #
+    census_df3b_max=y.groupby(['STNAME','CTYNAME']).max()
+    census_df3b_min=y.groupby(['STNAME','CTYNAME']).min()
+    census_df4b=census_df3b_max-census_df3b_min
+    census_df5b=census_df4b.nlargest(1,'POPESTIMATE')
+    r=census_df5b.index.tolist()[0][1]
+    return r #"YOUR ANSWER HERE"
+answer_seven()
+```
+
+Q8: In this datafile, the United States is broken up into four regions using the "REGION" column.
+
+Create a query that finds the counties that belong to regions 1 or 2, whose name starts with 'Washington', and whose POPESTIMATE2015 was greater than their POPESTIMATE 2014.
+
+This function should return a 5x2 DataFrame with the columns = ['STNAME', 'CTYNAME'] and the same index ID as the census_df (sorted ascending by index).
+```{python}
+def answer_eight():
+    census_df0=census_df
+    census_df0['id']=census_df0.index
+    census_df0['Wash']=census_df0['CTYNAME']
+    census_df0.at[census_df0['Wash'].str.startswith('Washington'),'Wash']='1'
+    census_df1=census_df0[(census_df0['SUMLEV'] == 50) & (census_df0['Wash'] == '1') & ((census_df0['REGION'] == 1) | (census_df0['REGION'] == 2))]
+    census_df2=census_df1.iloc[:,[5,6,13,14,100]]
+    census_df3=census_df2[(census_df2['POPESTIMATE2015'] >census_df2['POPESTIMATE2014'] )]
+    return census_df3[['STNAME','CTYNAME']].sort_index() #"YOUR ANSWER HERE"
+answer_eight()
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+
+```{python}
+
+```
+
+```{python}
+
+```

@@ -16,9 +16,8 @@ conda_list()
 ```
 
 ```{r}
-use_python("D:\\Temporal\\Anaconda\\python.exe",required = TRUE)
+#use_python("D:\\Temporal\\Anaconda\\python.exe",required = TRUE)
 ```
-
 
 ```{r}
 py_config()
@@ -195,7 +194,8 @@ all_countries
 all_countries.loc['Cricket']
 ```
 
-#The DataFrame Data Structure
+
+#***The DataFrame Data Structure***
 
 ```{python}
 purchase_1 = pd.Series({'Name': 'Chris',
@@ -234,7 +234,7 @@ print('\n')
 df.loc[:,['Name', 'Cost']]
 print('\n')
 ```
-
+#notar que no borra
 ```{python}
 df
 print('\n')
@@ -243,7 +243,7 @@ print('\n')
 df
 ```
 
-
+#se recomienda hacer una copia con la funcion copy y luego borrar
 ```{python}
 copy_df = df.copy()
 copy_df
@@ -269,161 +269,245 @@ df
 df['Cost'] *= 0.8
 print(df)
 ```
+#**Dataframe Indexing and Loading**
+```{python}
+costs = df['Cost']
+costs
+```
 
 ```{python}
+costs+=2
+costs
+```
 
+```{python}
+df
+```
+
+```{python}
+df = pd.read_csv('olympics.csv')
+df.head()
+```
+
+```{python}
+df = pd.read_csv('olympics.csv', index_col = 0, skiprows=1)
+df.head()
+```
+
+```{python}
+for col in df.columns:
+    if col[:2]=='01':
+        df.rename(columns={col:'Gold' + col[4:]}, inplace=True)
+    if col[:2]=='02':
+        df.rename(columns={col:'Silver' + col[4:]}, inplace=True)
+    if col[:2]=='03':
+        df.rename(columns={col:'Bronze' + col[4:]}, inplace=True)
+    if col[:1]=='№':
+        df.rename(columns={col:'#' + col[1:]}, inplace=True) 
+
+df.head()
+df.shape
+```
+#***Querying a DataFrame***
+
+#verifica cuales cumplen la condicion
+```{python}
+df['Gold'] > 0
+```
+#muestra solo los que cumplen la condicion y los demas salen como NaN
+```{python}
+only_gold = df.where(df['Gold'] > 0)
+only_gold.head()
+only_gold.shape
+```
+
+```{python}
+only_gold['Gold'].count()
+#print('\n')
+df['Gold'].count()
+```
+
+
+#elimina las filas con NaN
+```{python}
+only_gold.shape
+only_gold = only_gold.dropna()
+only_gold.head()
+only_gold.shape #len(only_gold)
+```
+#otra forma, directo sin nan
+```{python}
+only_gold = df[df['Gold'] > 0]
+only_gold.head()
+len(only_gold)
+```
+
+```{python}
+#len(df[(df['Gold'] > 0) | (df['Gold.1'] > 0)])
+aux=df[(df['Gold'] > 0) | (df['Gold.1'] > 0)]
+aux.head()
+only_gold.shape
+```
+#un slice del df de 6 filas y todas las columnas
+```{python}
+aux.iloc[3:9,:]
+aux.iloc[3:9,:].shape
+```
+
+```{python}
+df[(df['Gold.1'] > 0) & (df['Gold'] == 0)]
 ```
 
 
 ```{python}
+purchase_1 = pd.Series({'Name': 'Chris',
+                        'Item Purchased': 'Dog Food',
+                        'Cost': 22.50})
+purchase_2 = pd.Series({'Name': 'Kevyn',
+                        'Item Purchased': 'Kitty Litter',
+                        'Cost': 2.50})
+purchase_3 = pd.Series({'Name': 'Vinod',
+                        'Item Purchased': 'Bird Seed',
+                        'Cost': 5.00})
 
+rt = pd.DataFrame([purchase_1, purchase_2, purchase_3], index=['Store 1', 'Store 1', 'Store 2'])
+rt
 ```
 
 ```{python}
-
+# los que pagaron mas de $3
+qt=rt[rt['Cost']>3]
+qt
 ```
-
-
+#**Indexing Dataframes**
 ```{python}
-
+df.head()
 ```
-
+#grabando el indice actual 'country' como variable y creando el nuevo indice 'gold'
 ```{python}
-
+df['country'] = df.index
+df = df.set_index('Gold')
+df.head()
 ```
-
-
+#reseteando el indice
 ```{python}
-
-```
-
-```{python}
-
-```
-
-
-```{python}
-
+df = df.reset_index()
+df.head()
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
+df = pd.read_csv('census.csv')
+df.head()
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
+df['SUMLEV'].unique()
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
+df=df[df['SUMLEV'] == 50]
+df.head()
 ```
 
 ```{python}
-
-```
-
-
-
-
-
-```{python}
-
-```
-
-```{python}
-
-```
-
-
-```{python}
-
-```
-
-```{python}
-
-```
-
-
-```{python}
-
+columns_to_keep = ['STNAME',
+                   'CTYNAME',
+                   'BIRTHS2010',
+                   'BIRTHS2011',
+                   'BIRTHS2012',
+                   'BIRTHS2013',
+                   'BIRTHS2014',
+                   'BIRTHS2015',
+                   'POPESTIMATE2010',
+                   'POPESTIMATE2011',
+                   'POPESTIMATE2012',
+                   'POPESTIMATE2013',
+                   'POPESTIMATE2014',
+                   'POPESTIMATE2015']
+df = df[columns_to_keep]
+df.head()
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
+df = df.set_index(['STNAME', 'CTYNAME'])
+df.head()
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
-```
-
-
-```{python}
-
+df.loc['Michigan', 'Washtenaw County']
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
+df.loc[ [('Michigan', 'Washtenaw County'),
+         ('Michigan', 'Wayne County')] ]
 ```
 
 ```{python}
+# Reindex the purchase records DataFrame to be indexed hierarchically, first by store, then by person. 
+# Name these indexes 'Location' and 'Name'. Then add a new entry to it with the value of:
 
+# Name: 'Kevyn', Item Purchased: 'Kitty Food', Cost: 3.00 Location: 'Store 2'.
+
+purchase_1 = pd.Series({'Name': 'Chris',
+                        'Item Purchased': 'Dog Food',
+                        'Cost': 22.50})
+purchase_2 = pd.Series({'Name': 'Kevyn',
+                        'Item Purchased': 'Kitty Litter',
+                        'Cost': 2.50})
+purchase_3 = pd.Series({'Name': 'Vinod',
+                        'Item Purchased': 'Bird Seed',
+                        'Cost': 5.00})
+
+t = pd.DataFrame([purchase_1, purchase_2, purchase_3], index=['Store 1', 'Store 1', 'Store 2'])
+
+q =t.copy()
+
+t
+# Your answer here
+```
+
+```{python}
+t['Location'] = t.index
+t = t.set_index(['Location', 'Name'])
+t.head()
 ```
 
 
 ```{python}
-
+t = t.append(pd.Series(data={'Cost': 3.00, 'Item Purchased': 'Kitty Food'}, name=('Store 2', 'Kevyn')))
+t.head()
 ```
 
 ```{python}
+#opcion2
+q = q.set_index([q.index, 'Name'])
+q.index.names = ['Location', 'Name']
+q = q.append(pd.Series(data={'Cost': 3.00, 'Item Purchased': 'Kitty Food'}, name=('Store 2', 'Kevyn')))
+q.head()
+```
+#***Missing values***
 
+```{python}
+df = pd.read_csv('log.csv')
+df.head()
+```
+
+```{python}
+df = df.set_index('time')
+df = df.sort_index()
+df.head()
 ```
 
 
 ```{python}
-
+df = df.reset_index()
+df = df.set_index(['time', 'user'])
+df.head()
 ```
-
+#metodo para llenar vacios
 ```{python}
-
-```
-
-
-```{python}
-
-```
-
-```{python}
-
+df = df.fillna(method='ffill')
+df.head()
 ```
 
 
