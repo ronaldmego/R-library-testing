@@ -12,7 +12,7 @@ library(reticulate)
 ```
 instalaciones de python que tengo
 ```{r}
-#conda_list()
+conda_list()
 ```
 
 ```{r}
@@ -23,10 +23,7 @@ use_python("D:\\Temporal\\Anaconda\\python.exe",required = TRUE)
 ```{r}
 py_config()
 ```
-#para instalar paquetes de python
-```{r}
-#py_install("pandas")
-```
+
 
 ```{python}
 import numpy as np
@@ -215,35 +212,62 @@ df.head()
 ```
 
 ```{python}
-
+df['Item Purchased']
+print('\n')
+df.loc['Store 2']
+print('\n')
+type(df.loc['Store 2'])
+print('\n')
+df.loc['Store 1']
+print('\n')
+df.loc['Store 1', 'Cost']
 ```
 
 
 ```{python}
-
+df.T
+print('\n')
+df.T.loc['Cost']
+print('\n')
+df['Cost']
+print('\n')
+df.loc[:,['Name', 'Cost']]
+print('\n')
 ```
 
 ```{python}
-
-```
-
-
-```{python}
-
-```
-
-
-```{python}
-
-```
-
-```{python}
-
+df
+print('\n')
+df.drop('Store 1')
+print('\n')
+df
 ```
 
 
 ```{python}
+copy_df = df.copy()
+copy_df
+print('\n')
+copy_df = copy_df.drop('Store 1')
+copy_df
+```
 
+
+```{python}
+del copy_df['Name']
+copy_df
+```
+#agrega una columa
+```{python}
+df['Location'] = None
+print('\n')
+df
+```
+
+#actualiza el valor multiplicandolo por 0.8
+```{python}
+df['Cost'] *= 0.8
+print(df)
 ```
 
 ```{python}
