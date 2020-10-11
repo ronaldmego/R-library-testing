@@ -3,9 +3,6 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-# https://anderfernandez.com/blog/reticulate-usar-python-en-r/
-# https://stackoverflow.com/questions/52741484/how-to-import-pandas-using-r-studio
-
 
 ```{r}
 library(reticulate)
