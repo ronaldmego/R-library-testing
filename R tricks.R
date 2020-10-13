@@ -175,10 +175,12 @@ data.frame(sapply(d_seg_idnota_lec, function(x) sum(is.na(x))))
 #asignar nombres a las columnas del df:
 colnames(datos) <- nombres[[2]]$Property
 
-
 #totales de todas las columnas si son numericas:
 totales_columna<-as.data.frame(colSums(Filter(is.numeric, rm_reg_seg[-1:-5]))) #ignora las 5 primeras columnas
 
+#para pasar fechas a formato periodo yyyymm
+p_paywall$Month_Yr<-format(as.Date(p_paywall$date), "%Y%m")		  
+		  
 library(lubridate) #para tomar el anio de la fecha
 PlantaPQ_Mon_3$year<-year(PlantaPQ_Mon_3$fch_registro)
 
