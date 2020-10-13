@@ -35,7 +35,12 @@ d_enrq <- read.csv2("202006_Audiencias.csv",header = T)
 #para grabar csv sin el indice y delimitado por ";"
 write.csv2(tag_reg,"tag_reg.csv",row.names = FALSE)
 
-#para leer y escribir excel y seguro tambien leer, falta explorar la libreria
+
+#para leer excel y pedirle que setee formatyo fecha, texto y que para lo demas adivine:
+library(readxl)
+x<- read_excel("20200710_RegistradosARC.xlsx",sheet='PDE',col_types = c("date", "text", "guess", "guess"))
+
+#otra opcion para leer y escribir excel
 library(openxlsx)
 read.xlsx("20200710_RegistradosARC.xlsx") #https://rdrr.io/cran/openxlsx/man/read.xlsx.html
 
@@ -52,9 +57,6 @@ file<- paste0(ruta,nombre,"_",hora,".xlsx")
 write.xlsx(df_pq_t,file,col.names=TRUE, row.names=FALSE)
 
 
-#otra opcion para leer excel y pedirle que setee formatyo fecha, texto y que para lo demas adivine:
-library(readxl)
-x<- read_excel("20200710_RegistradosARC.xlsx",sheet='PDE',col_types = c("date", "text", "guess", "guess"))
 
 
 #para grabar una data omitiendo columnas y usando csv2 para separar por ";" en vez de ";":
@@ -119,7 +121,7 @@ t$Fecha_Nacimiento_fixed <- as.Date(t$Fecha_Nacimiento, tryFormats = c("%d/%m/%Y
 
 #para pasar texto a minusculas y reemplazar caracteres especiales:
 diccionario_tags$Tag<- tolower(diccionario_tags$Tag)
-diccionario_tags$Tag_fixed <- chartr("áéíóúñ-","aeioun_",diccionario_tags$Tag)
+diccionario_tags$Tag_fixed <- chartr("Ã¡Ã©Ã­Ã³ÃºÃ±-","aeioun_",diccionario_tags$Tag)
 
 #mirando valores unicos de una columna
 table(df$column)
@@ -273,7 +275,7 @@ ip <- as.data.frame(installed.packages()[,c(1,3:4)])
 rownames(ip) <- NULL
 ip <- ip[is.na(ip$Priority),1:2,drop=FALSE]
 print(ip, row.names=FALSE)
-#para ver una descripci�n de las librerias instaladas
+#para ver una descripción de las librerias instaladas
 library()
 #Comando para instalar librerias recomendadas, excepto las ya instaladas
 list.of.packages <- c(####### recomendados
