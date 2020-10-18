@@ -16,6 +16,11 @@ Sys.getlocale() #configuracion local
 #para setear configuracion a ingles
 Sys.setlocale("LC_ALL","English")
 
+#para hacer funciones tipo pivot 
+library(tidyr)
+pivot_longer()  #reduce columnas e incrementa filas
+pivot_wider()  #incrementa columas y reduce filas
+
 #creando un dataframe from scratch
 orden<-c(0,1,2,3,4,5,6)
 seg<-  c(0,3,4,1,6,2,5)
