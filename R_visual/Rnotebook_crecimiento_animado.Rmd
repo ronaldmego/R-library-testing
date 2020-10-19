@@ -1,0 +1,88 @@
+---
+title: "R Notebook para linea evolutiva animada"
+---
+
+#instalar librerias en caso no esten disponibles
+```{r}
+#install.packages('gganimate')
+#install.packages('gifski')
+#install.packages('readxl')
+```
+
+#cargar la librerias a usar en este notebook
+```{r}
+library(ggplot2) #graficos
+library(dplyr) #data manipulation
+library(gganimate) #animacion
+library(readxl) #abrir excel
+library(gifski) #soporte gif
+```
+
+#cargar la data que debe estar en formato #fecha y #numero con nombres de campo #date y #valor
+```{r}
+df_data<- read_excel("D:\\Mego\\Github\\R_tutorials\\R_animate\\Evol_Data.xlsx",col_types = c("date", "guess"))
+```
+
+#aseguramos el formato de cada campo
+```{r}
+df_data$date<-as.Date(df_data$date)
+df_data$valor<-as.numeric(df_data$valor)
+```
+
+
+#creamos la variable month_yr que tendra solo datos de mes y año, luego la pasamos a integer para efectos de grafico
+```{r}
+df_data$Month_Yr<-format(as.Date(df_data$date), "%Y%m") #se crea la variable en formato "chr"
+df_data$Month_Yr<-as.integer(df_data$Month_Yr) #la pasamos a "int"
+```
+
+
+#le damos una mirada a los 5 primeros registros de la data para ver si todo ok
+```{r}
+head(df_data)
+```
+
+
+#personalizamos los valores del grafico
+```{r}
+#definiendo los ejes
+ejex<-df_data$date
+ejey<-df_data$valor
+etiqueta<-df_data$Month_Yr
+
+#personalizando labels
+titulo<-'Aqui va el titulo princiapal'
+subtitulo<-'Aqui va el subtitulo'
+anotacion<-'Aqui puedes poner la fuente'
+titulo_eje_x<-'Aqui titulo del eje x'
+titulo_eje_y<-'Aqui titulo del eje y'
+```
+
+
+#creas el grafico como objeto
+```{r}
+grafico<-df_data %>%
+  ggplot(aes(ejex, ejey)) + geom_point() + geom_line() + 
+  geom_text(aes(x = min(ejex), y = min(ejey), label = as.factor(Month_Yr)) , 
+            hjust=-1.5, vjust = -6, alpha = 0.5,  col = "gray", size = 20) +
+  theme_minimal() +
+  
+  labs(title = titulo,
+       subtitle = subtitulo,
+       caption = anotacion,
+       x = titulo_eje_x,
+       y = titulo_eje_y)+
+  
+  transition_reveal(ejex) + 
+  view_follow()
+```
+
+#visualizas el objeto en su version estatica para dar una idea de la posicion final
+```{r}
+plot(grafico)
+```
+
+#animas el objeto y tienes la animacion, puedes calibrar los atributos
+```{r}
+animate(grafico, width = 700, height = 432, fps = 25, duration = 20, rewind = FALSE)
+```

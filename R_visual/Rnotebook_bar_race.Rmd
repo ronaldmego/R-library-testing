@@ -1,0 +1,118 @@
+---
+title: "Notebook Bar Race demo"
+---
+
+#se cargan las librerias requeridas
+```{r}
+library(ggplot2) #graficos
+library(gganimate) #animacion
+library(gifski) #gif support
+library(dplyr) #manipulacion de data
+library(stringr) #para acomodar texto
+library(readxl) #abrir excel
+```
+
+
+#cargar data con cuatro campos #date, #etiqueta, #valor, #ranking
+```{r}
+df_data<- read_excel("D:\\Mego\\Github\\R_tutorials\\R_visual\\Bar_Race_Data.xlsx",col_types = c("date","guess","guess"))
+```
+
+
+#aseguramos el formato de cada campo
+```{r}
+df_data$date<-as.Date(df_data$date)
+df_data$valor<-as.numeric(df_data$valor)
+df_data$etiqueta<-as.character(df_data$etiqueta)
+```
+
+
+#creamos la variable month_yr que tendra solo datos de mes y año, luego la pasamos a integer para efectos de grafico
+```{r}
+df_data$Month_Yr<-format(as.Date(df_data$date), "%Y%m") #se crea la variable en formato "chr"
+df_data$Month_Yr<-as.integer(df_data$Month_Yr) #la pasamos a "int"
+```
+
+#se crea la variable ranking con limite_barras de 15, es decir no se miran mas de 15 barras durante la animacion
+```{r}
+df_data_2 <- df_data %>%
+  group_by(Month_Yr) %>%
+  arrange(Month_Yr, desc(valor)) %>%
+  mutate(ranking = row_number()) %>%
+  filter(ranking <=15)  #maximo quince barras
+
+df_data<-as.data.frame(df_data_2)
+#df_data<-df_data_2
+rm(df_data_2)
+```
+
+
+#le damos una mirada a los 5 primeros registros de la data para ver si todo ok
+```{r}
+class(df_data)
+head(df_data)
+```
+
+#vamos a mirar solo una parte del grafico para reducir procesamiento
+```{r}
+df_data_test<-subset(df_data,Month_Yr>=201801)
+class(df_data_test)
+head(df_data_test)
+```
+
+
+#valorsonalizamos los valores del grafico
+```{r}
+
+#definiendo los ejes
+df_data_test$elementos<-df_data_test$etiqueta
+df_data_test$valor<-df_data_test$valor
+df_data_test$periodo<-as.character(df_data_test$Month_Yr)
+
+#valorsonalizando labels
+titulo<-'Aqui va el titulo princiapal'
+#subtitulo<-'Aqui va el subtitulo'
+#anotacion<-'Aqui puedes poner la fuente'
+#titulo_eje_x<-'Aqui titulo del eje x'
+titulo_eje_y<-'Aqui titulo del eje y'
+
+q_barras<-max(df_data_test$ranking)
+```
+
+
+```{r}
+grafico_n <- df_data_test %>%
+  ggplot() +
+  geom_col(aes(ranking, valor, fill = elementos, width=0.9)) +
+  geom_text(aes(ranking, valor, label = as.factor(valor)), hjust=-0.1) +
+  geom_text(aes(ranking, y=0 , label = substr(elementos,1,30)), hjust=1.1) +
+  geom_text(aes(x=q_barras, y=max(valor) , label = as.factor(periodo)),
+            vjust = 0.2,hjust=0.2, alpha = 0.6,  col = "gray", size = 20) +
+  coord_flip(clip = "off", expand = TRUE) + scale_x_reverse() +
+  theme_minimal() + 
+  theme(
+    panel.grid = element_blank(), 
+    legend.position = "none",
+    axis.ticks.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    plot.margin = margin(1, 4, 1, 8, "cm")
+  ) +
+  transition_states(periodo, state_length = 0, transition_length = 2,wrap=FALSE) +  #wrap evita q el primer estado vaya al final
+  labs(title = titulo,y = titulo_eje_y)+
+  enter_fade() +
+  exit_fade() + 
+  ease_aes('quadratic-in-out') #afecta como entran y salen las transisiones.
+```
+
+```{r}
+plot(grafico_n)
+```
+
+
+```{r}
+animate(grafico_n, width = 1000 , height = 432, fps = 25, duration = 10, rewind = FALSE)
+```
+
+
+
