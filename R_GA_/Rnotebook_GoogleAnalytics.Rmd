@@ -1,6 +1,9 @@
 
 # https://michalbrys.gitbooks.io/r-google-analytics/content/chapter3/library_rga.html
 
+# https://code.markedmondson.me/googleAnalyticsR/articles/management.html
+
+# http://code.markedmondson.me/googleAnalyticsR/articles/setup.html#your-own-google-project
 ```{r}
 library(googleAuthR)
 library(googleAnalyticsR)
@@ -8,27 +11,59 @@ library(tidyverse)
 ```
 
 ```{r}
-ga_auth() #correr en consola
+ga_auth(email='work@work.com') #correr en consola
 ```
 
-```{r}
-options(googleAuthR.scopes.selected = c("https://www.googleapis.com/auth/analytics",
-"https://www.googleapis.com/auth/drive"))
-```
 
 
 ## get a list of your accounts
 ```{r}
-account_list <- ga_account_list()
+account_list <- ga_account_list() #- Get account summary including the ViewId
+```
+#get a data.frame of available dimensions and metrics, or just use meta directly to get the version that comes with the library.
+```{r}
+kpis<-ga_meta()
+```
+
+#listar custom variables
+```{r}
+ga_custom_vars_list(accountId='3055636', webPropertyId='UA-3055636-11')
 ```
 
 
-#query
+#query demo de paginas vistas
 ```{r}
-gadata <- google_analytics(viewId = 21928896, date_range =c("2020-09-01","2020-09-05"),
-                                metrics = "sessions", 
-                                dimensions = "date", 
-                                max = 5000)
+ga_pageviews <- google_analytics(viewId = 21928896, #vista
+                                 date_range =c("2020-10-01","2020-10-24"), #rango de fechas
+                                 metrics = "pageviews",  #metrica paginas vistas
+                                 dimensions = "date", #dimension fecha
+                                 max=-1) #sin limite
+```
+
+
+
+
+###OTRAS FUNCIONES UTILES###  para mas informacion mirar el link
+```{r}
+ga_account_list() #- Get account summary including the ViewId
+ga_accounts() #- Get account metadata for your user
+ga_webproperty() #- Get web property
+ga_webproperty_list() #- List web properties for a particular accountId
+ga_view() #- Get single View (Profile)
+ga_view_list() #- List Views (Profile) for a particular accountId/webPropertyId
+```
+
+#custom variables
+```{r}
+ga_custom_vars_list(accountId='3055636', webPropertyId='UA-3055636-11') #- list all custom dimensions or metrics
+ga_custom_vars() #- get meta data for a specific custom variable
+ga_custom_vars_create() #- create a new custom variable
+ga_custom_vars_patch() #- update an existing custom variable
+```
+#para especifiar los permisos requeridos
+```{r}
+#options(googleAuthR.scopes.selected = c("https://www.googleapis.com/auth/analytics",
+#"https://www.googleapis.com/auth/drive"))
 ```
 
 
@@ -42,9 +77,8 @@ ga_unsampled_list(accountId='3055636', webPropertyId='UA-3055636-11', profileId=
 ga_unsampled(accountId='3055636', webPropertyId='UA-3055636-11', profileId='21928896', unsampledReportId='-jVmHcZqQB2kInVInjlRAw')
 ```
 
-#descarga del reporte sin muestrear
+#descarga del reporte sin muestrear (esto no funciona)
 ```{r}
 df_premium_por_dia_gs<-ga_unsampled_download(reportTitle='Monetizables EC',accountId='3055636', webPropertyId='UA-3055636-11', profileId='21928896', downloadFile = FALSE)
 ```
-
 
