@@ -137,7 +137,7 @@ rm_reg_seg<-left_join(rm_reg_seg,aux2[,c('ecoid_full','seg')])  #solo algunos ca
 
 #cruzando left join y anexando columnas y luego reeemplazando los vacios del join con otra columna
 prod_tags_idnota<-left_join(prod_tags_idnota,agregador_tags)
-y<-ifelse(is.na(prod_tags_idnota$TagAG),prod_tags_idnota$Tag_fixed,prod_tags_idnota$TagAG)
+prod_tags_idnota$TagAG<-ifelse(is.na(prod_tags_idnota$TagAG),prod_tags_idnota$Tag_fixed,prod_tags_idnota$TagAG)
 
 #encontrando valores vacios y reemplazando con NA
 t$edad_fixed[is.na(t$Rango_Edad)]<-NA
