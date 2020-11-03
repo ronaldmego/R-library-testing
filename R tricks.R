@@ -62,8 +62,6 @@ file<- paste0(ruta,nombre,"_",hora,".xlsx")
 write.xlsx(df_pq_t,file,col.names=TRUE, row.names=FALSE)
 
 
-
-
 #para grabar una data omitiendo columnas y usando csv2 para separar por ";" en vez de ";":
 write.csv2(subset(d_enrq_reg, 
             select=-c(seg,suscriptor,choques_pay,choques_prem,data_seg)),
@@ -110,6 +108,9 @@ regARC$aux<-substr(regARC$email,
          regexpr("@",regARC$email),
          nchar(regARC$email))
 
+#para pasar a texto:
+toString()
+		  
 #para hacer intervalos de igual tamanio, ejemplo metodo cut en python:
 library(mltools)
 
