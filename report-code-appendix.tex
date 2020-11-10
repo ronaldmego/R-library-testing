@@ -1,0 +1,302 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs}
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+
+\textbf{Please read the Rmd file accompanying this PDF, and as you do
+so, you can refer to the PDF to see how each example is rendered (or
+not).}
+
+\hypertarget{intro}{%
+\section{Intro}\label{intro}}
+
+R markdown files allow you to show code and outputs in the order they
+were run. However, our professor doesn't want to see our R code until
+the end of the report, in an appendix. So, she has said that our reports
+\emph{should not} be compiled from R markdown files. But, there is a way
+to create PDF reports from R markdown files where the code echoing is
+suppressed and instead shown in an appendix! This Rmd file is an example
+of that.
+
+I'll show a bunch of example code chunks so you can see the different
+options.
+
+\hypertarget{setup-chunk}{%
+\subsection{Setup Chunk}\label{setup-chunk}}
+
+Please notice above the \texttt{setup} chunk. There are a couple of
+things I want to point out:
+
+\begin{itemize}
+\tightlist
+\item
+  The chunk options are very different from what you are used to
+\item
+  Every package required anywhere in the report is loaded right up front
+\item
+  The \texttt{setup} chunk \emph{is not} included in the appendix! It is
+  reserved solely for code that is required to facilitate document
+  generation
+\end{itemize}
+
+So, why have I put \texttt{library} statements there? You'll see that
+the \texttt{library} statements are wrapped in
+\texttt{suppressPackageStartupMessages} and that I've passed a few extra
+parameters that you may not have seen before. This means that packages
+will not produce any pesky output in your report when they are loaded.
+However, because we don't want to include the \texttt{setup} chunk in
+the appendix, you will want to ``re-load'' every package within code
+chunks that \emph{will} end up in the appendix.
+
+\hypertarget{a-note-about-default-chunk-options}{%
+\subsection{A note about default chunk
+options}\label{a-note-about-default-chunk-options}}
+
+You can ignore this section on the first read. Just follow the
+conventions outlined below for the different examples.
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule
+\begin{minipage}[b]{0.24\columnwidth}\raggedright
+Default option\strut
+\end{minipage} & \begin{minipage}[b]{0.70\columnwidth}\raggedright
+Why?\strut
+\end{minipage}\tabularnewline
+\midrule
+\endhead
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{eval\ =\ TRUE}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+All R code is executed by default\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{echo\ =\ FALSE}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+Do not show R code at the time it is run\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{message\ =\ FALSE}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+Do not show any messages\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{error\ =\ FALSE}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+Do not show any warnings\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{warning\ =\ FALSE}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+Do not show any errors\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{purl\ =\ FALSE}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+By default, code chunks \emph{will not} appear in the appendix. You will
+have to explicitly mark the ones you want to include\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.24\columnwidth}\raggedright
+\texttt{results\ =\ \textquotesingle{}hide\textquotesingle{}}\strut
+\end{minipage} & \begin{minipage}[t]{0.70\columnwidth}\raggedright
+You are probably used to code chunks outputing something to include in
+your report. If you want this, you'll have to explicitly override this
+option!\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+\hypertarget{examples-of-different-configurations}{%
+\section{Examples of different
+configurations}\label{examples-of-different-configurations}}
+
+\hypertarget{example-1-data-prep-chunk}{%
+\subsection{Example 1: data prep
+chunk}\label{example-1-data-prep-chunk}}
+
+You'll use this kind of code chunk when you are prepping data for use in
+other chunks, but there won't be any output to the report. You want the
+code in the appendix so the reader can reproduce your work, but there
+isn't any output yet.
+
+Chunk options:
+
+\begin{itemize}
+\tightlist
+\item
+  Default options apply
+\item
+  \texttt{purl=TRUE} means ``include in appendix''
+\end{itemize}
+
+\hypertarget{example-2-content-chunk}{%
+\subsection{Example 2: content chunk}\label{example-2-content-chunk}}
+
+The option \texttt{results=\textquotesingle{}markup\textquotesingle{}}
+is what you are used to working with in Rmd files. There are other
+values you can set \texttt{results} to, but you probably won't use them
+very often. (Except for \texttt{asis}, and you will see an example of
+that below when we bootstrap in the appendix.)
+
+\includegraphics{report-code-appendix_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\hypertarget{example-3-kable-output}{%
+\subsection{\texorpdfstring{Example 3: \texttt{kable}
+output}{Example 3: kable output}}\label{example-3-kable-output}}
+
+Let's say you want to put some table output in your report. But, you
+want the reader, when they run your code, to be able to get readable
+output. (Nicely formatted stuff will have a lot of extra tags around it
+and isn't always the easiest to read.)
+
+\hypertarget{example-4-experiments}{%
+\subsection{Example 4: experiments}\label{example-4-experiments}}
+
+You're going to try lots of stuff when you are writing your report. But,
+why should you have to delete the code just because it ended up not
+being needed?
+
+Remember \texttt{purl=FALSE} and
+\texttt{results=\textquotesingle{}hide\textquotesingle{}} are set by
+default.
+
+\hypertarget{example-5-code-for-the-reader}{%
+\subsection{Example 5: code for the
+reader}\label{example-5-code-for-the-reader}}
+
+The following chunk won't do anything for your report or analysis, but
+will show up in the appendix. This might be used for something that you
+experimented with and talked about, but doesn't have any content for
+your report. The reader might want to see what you tried if you've
+mentioned it in your write-up.
+
+\newpage
+
+\hypertarget{appendix-1-r-code-for-analysis}{%
+\section{Appendix 1: R Code for
+Analysis}\label{appendix-1-r-code-for-analysis}}
+
+And, here is the appendix. I haven't figured out how to get the file
+name of the Rmd file knitr is compiling, so that is hardcoded. (It's the
+name of this Rmd file!)
+
+\begin{verbatim}
+# ============================
+# Example 1: data prep chunk
+# ============================
+
+# Re-list the packages your code uses
+# You don't need to list knitr unless that is required for reproducing your work
+###library(alrtools)
+library(tidyverse)
+
+# Notice that I've put a big banner comment at the beginning of this
+# Since I am including it in the appendix, I want the reader to be
+# able to know what section of the report the code applies to
+
+# If you are using functions the reader may not have seen before
+# it's not a bad idea to preface them with the package they come from.
+# readr was loaded as part of the tidyverse
+# So the "namespacing" is not required, only helpful
+###boston <- readr::read_csv('crime-training-data_modified.csv')
+
+# ============================
+# Example 2: data prep chunk
+# ============================
+
+###mod1 <- lm(medv ~ age + rm, data = boston)
+###par(mfrow = c(2, 2))
+plot(cars)
+
+# ============================
+# Example 3: `kable` output
+# ============================
+
+# This shows a table of response variable versus rounded room counts
+# But, it's not pretty
+###tbl <- table(boston$target, round(boston$rm, 0))
+print(cars)
+
+
+
+
+
+# ============================
+# Example 5: code for the reader
+# ============================
+###library(tree)
+###tree1 <- tree::tree(medv ~ ., data = boston)
+###par(mfrow = c(1, 1))
+###plot(tree1, type = 'uniform')
+###text(tree1, pretty = 5, col = 'blue', cex = 0.8)
+\end{verbatim}
+
+\end{document}
