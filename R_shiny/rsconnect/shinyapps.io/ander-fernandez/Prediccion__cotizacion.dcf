@@ -1,0 +1,13 @@
+name: Prediccion__cotizacion
+title: Prediccion__cotizacion
+username:
+account: ander-fernandez
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3054478
+bundleId: 3760996
+url: https://ander-fernandez.shinyapps.io/Prediccion__cotizacion/
+when: 1603170275.45938
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Script.R|Demo/app.R
