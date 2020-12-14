@@ -49,4 +49,3 @@ conda_install("r-tf",c('pandas'), pip = TRUE)
 ```{r}
 #py_install("pandas")
 ```
-
