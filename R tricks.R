@@ -7,6 +7,26 @@ memory.limit() #tope de memoria
 gc() #para liberar memoria
 setwd("D:/Mego/Big_Data") #para setear working directory
 
+#para saber el idioma de nuestro sistema operativo
+```{r}
+stringi::stri_locale_info()
+```
+#busca funciones poniendo como input parte dela misma
+```{r}
+apropos("replace")
+```
+#tambien busca las variables que estan cargadas
+```{r}
+apropos("fruit")
+```
+
+busca tambien archivos en nuestro directorio
+```{r}
+dir(pattern="\\.Rmd$")
+```
+
+
+
 library(tidyverse) #libreria top
 
 sessionInfo() #configuracion local
