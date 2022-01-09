@@ -8,22 +8,22 @@ gc() #para liberar memoria
 setwd("D:/Mego/Big_Data") #para setear working directory
 
 #para saber el idioma de nuestro sistema operativo
-```{r}
-stringi::stri_locale_info()
-```
-#busca funciones poniendo como input parte dela misma
-```{r}
-apropos("replace")
-```
-#tambien busca las variables que estan cargadas
-```{r}
-apropos("fruit")
-```
 
-busca tambien archivos en nuestro directorio
-```{r}
+stringi::stri_locale_info()
+
+#busca funciones poniendo como input parte dela misma
+
+apropos("replace")
+
+#tambien busca las variables que estan cargadas
+
+apropos("fruit")
+
+
+#busca tambien archivos en nuestro directorio
+
 dir(pattern="\\.Rmd$")
-```
+
 
 
 
@@ -140,7 +140,9 @@ library(mltools)
 	#separa la data en grupos segun los intervalos definidos y cerrado por la izquierda:
 	t$r_edad<-bin_data(t$edad,bins=c(-Inf,17,24,34,45, Inf),binType='explicit',boundaryType="[lorc")
 
-
+#El paquete base tambien tien CUT() a disposicion para crear intervalos
+cut()
+	
 #para pasar a formato fecha de distintos formatos origen con try format:
 t$Fecha_Nacimiento_fixed <- as.Date(t$Fecha_Nacimiento, tryFormats = c("%d/%m/%Y","%Y-%m-%d","%Y/%m/%d"))
 #aux <- as.POSIXct("2020-05-31 23:59:59")
